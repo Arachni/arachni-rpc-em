@@ -33,6 +33,6 @@ Gem::Specification.new do |s|
 
       s.description = <<description
         EventMachine based RPC client and server capable of a few thousands requests per second (depending on call size, network conditions and the like).
-        It supports TLS encrytion, asynchronous and synchronous requests and is capable of handling remote asynchronous calls that require a block.
+        It supports TLS encryption, asynchronous and synchronous requests and is capable of handling remote asynchronous calls that require a block.
 description
 end
