@@ -64,6 +64,7 @@ If you want to clone the repository and work with the source code:
     cd arachni-rpc-em
     rake install
 
+You'l also need to install <a href="http://github.com/Arachni/arachni-rpc-pure">Arachni-RPC</a>.
 
 ## Running the Specs
 
