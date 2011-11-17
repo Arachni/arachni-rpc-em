@@ -85,7 +85,7 @@ class Client
         def receive_response( res )
 
             if exception?( res )
-                res.obj = exception( res.obj )
+                res.obj = Arachni::RPC::Exceptions.from_response( res )
             end
 
             if cb = @request.callback
@@ -112,16 +112,6 @@ class Client
         # @param    [Arachni::RPC::EM::Response]    res
         def exception?( res )
             res.obj.is_a?( Hash ) && res.obj['exception'] ? true : false
-        end
-
-        #
-        # Returns an exception based on the return object data.
-        #
-        def exception( obj )
-            klass = Arachni::RPC::Exceptions.const_get( obj['type'].to_sym )
-            e = klass.new( obj['exception'] )
-            e.set_backtrace( obj['backtrace'] )
-            return e
         end
 
         #
