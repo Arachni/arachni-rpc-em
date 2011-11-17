@@ -214,6 +214,17 @@ class Server
     #
     def initialize( opts )
         @opts  = opts
+
+        if @opts[:ssl_pkey] && @opts[:ssl_cert]
+            if !File.exist?( @opts[:ssl_pkey] )
+                raise 'Could not find private key at: ' + @opts[:ssl_pkey]
+            end
+
+            if !File.exist?( @opts[:ssl_cert] )
+                raise 'Could not find certificate at: ' + @opts[:ssl_cert]
+            end
+        end
+
         @token = @opts[:token]
 
         @logger = ::Logger.new( STDOUT )
