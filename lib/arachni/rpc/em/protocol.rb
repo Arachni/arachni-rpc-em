@@ -91,7 +91,7 @@ module Protocol
     # @see http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #
     def serializer
-        @opts[:serializer] ? @opts[:serializer] : Marshal
+        @opts[:serializer] ? @opts[:serializer] : YAML
     end
 
 end
