@@ -15,7 +15,7 @@ require File.join( cwd, '../lib/arachni/rpc/', 'em' )
 # connect to the server
 client = Arachni::RPC::EM::Client.new(
     :host  => 'localhost',
-    :port  => 7331,
+    :port  => 7332,
 
     # optional authentication token, if it doesn't match the one
     # set on the server-side you'll be getting exceptions.
@@ -138,7 +138,7 @@ p bench.foo( 'This is a sync call to "bench.foo".' )
 #
 # Non-existent object.
 #
-blah = Arachni::RPC::EM::Client::Mapper.new( client, 'blah' )
+blah = Arachni::RPC::RemoteObjectMapper.new( client, 'blah' )
 begin
     p blah.something
 rescue Exception => e
@@ -177,5 +177,5 @@ blah.something {
 #
 # Call ::EM.stop to break-out.
 #
-Arachni::RPC::EM::EM.block!
+Arachni::RPC::EM.block!
 

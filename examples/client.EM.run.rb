@@ -20,7 +20,7 @@ require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../lib/arachni
     # connect to the server
     client = Arachni::RPC::EM::Client.new(
         :host  => 'localhost',
-        :port  => 7331,
+        :port  => 7332,
 
         # optional authentication token, if it doesn't match the one
         # set on the server-side you'll be getting exceptions.
@@ -34,26 +34,26 @@ require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../lib/arachni
         :serializer => Marshal
     )
 
-    bench = Arachni::RPC::EM::Client::Mapper.new( client, 'bench' )
+    bench = Arachni::RPC::RemoteObjectMapper.new( client, 'bench' )
 
     #
     # There's one downside though, if you want to run this thing inside an
     # ::EM.run block: you'll have to wrap all sync calls in a ::Arachni::RPC::EM::EM::Synchrony.run block.
     #
     # Like so:
-    ::Arachni::RPC::EM::EM::Synchrony.run do
+    ::Arachni::RPC::EM::Synchrony.run do
         p bench.foo( 'First sync call in individual Synchrony block.' )
         # => "First sync call in individual Synchrony block."
     end
 
     # you can use it again individually
-    ::Arachni::RPC::EM::EM::Synchrony.run do
+    ::Arachni::RPC::EM::Synchrony.run do
         p bench.foo( 'Second sync call in individual Synchrony block.' )
         # => "Second sync call in individual Synchrony block."
     end
 
     # or just wrap lots of calls in it
-    ::Arachni::RPC::EM::EM::Synchrony.run do
+    ::Arachni::RPC::EM::Synchrony.run do
         p bench.foo( 'Third sync call in individual Synchrony block.' )
         # => "Third sync call in individual Synchrony block."
 

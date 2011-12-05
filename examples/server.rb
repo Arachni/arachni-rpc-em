@@ -39,7 +39,7 @@ end
 
 server = Arachni::RPC::EM::Server.new(
     :host  => 'localhost',
-    :port  => 7331,
+    :port  => 7332,
 
     # optional authentication token, if it doesn't match the one
     # set on the client-side the client won't be able to do anything
