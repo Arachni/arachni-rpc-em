@@ -62,7 +62,6 @@ module Protocol
     # @param    [Hash]      obj
     #
     def receive_object( obj )
-
         if @role == :server
             receive_request( Request.new( obj ) )
         else
@@ -92,6 +91,24 @@ module Protocol
     # It will then unresialize it and pass it to receive_object().
     #
     def receive_data( data )
+        #
+        # cut them out as soon as possible
+        #
+        # don't buffer any data from unverified peers if SSL peer
+        # veification has been enabled
+        #
+        if ssl_opts? && !verified_peer? && @role == :server
+            e = Arachni::RPC::Exceptions::SSLPeerVerificationFailed.new( 'Could not verify peer.' )
+            send_response Response.new( :obj => {
+                'exception' => e.to_s,
+                'backtrace' => e.backtrace,
+                'type'      => 'SSLPeerVerificationFailed'
+            })
+
+            log( :error, 'SSL', " Could not verify peer. ['#{peer_ip_addr}']." )
+            return
+        end
+
         (@buf ||= '') << data
 
         while @buf.size >= 4

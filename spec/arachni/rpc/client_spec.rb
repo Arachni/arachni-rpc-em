@@ -196,4 +196,16 @@ describe Arachni::RPC::EM::Client do
         end
     end
 
+    context "when using mixed SSL primitives" do
+        it "should not be able to establish a connection" do
+            start_client( rpc_opts_with_mixed_ssl_primitives ).call( 'test.foo', @arg ){
+                |res|
+                res.rpc_connection_error?.should be_true
+                res.rpc_ssl_error?.should be_true
+                ::EM.stop
+            }
+            Arachni::RPC::EM.block!
+        end
+    end
+
 end

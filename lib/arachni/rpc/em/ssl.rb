@@ -55,6 +55,8 @@ module SSL
     # Starts SSL with the supplied keys, certs etc.
     #
     def start_ssl
+        @verified_peer = false
+        @ssl_requested = true
 
         ssl_opts = {}
         if ssl_opts?
@@ -70,6 +72,10 @@ module SSL
 
         # ap ssl_opts
         start_tls( ssl_opts )
+    end
+
+    def verified_peer?
+        @verified_peer
     end
 
     #
@@ -129,6 +135,7 @@ module SSL
             # should not be added to the store again.
             ca_store.add_cert( @last_seen_cert ) if !@last_seen_cert.root?
 
+            @verified_peer = true
             return true
         else
             log( :error, 'SSL',

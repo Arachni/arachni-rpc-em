@@ -33,6 +33,13 @@ def rpc_opts_with_invalid_ssl_primitives
     )
 end
 
+def rpc_opts_with_mixed_ssl_primitives
+    rpc_opts_with_ssl_primitives.merge(
+        :ssl_pkey   => cwd + '/pems/client/key.pem',
+        :ssl_cert   => cwd + '/pems/client/foo-cert.pem'
+    )
+end
+
 
 def start_client( opts )
     Arachni::RPC::EM::Client.new( opts )
