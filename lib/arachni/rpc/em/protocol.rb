@@ -21,8 +21,10 @@ module EM
 # @version: 0.1
 #
 module Protocol
-    include ::EM::P::ObjectProtocol
     include ::Arachni::RPC::EM::SSL
+
+    # send a maximum of 16kb of data per tick
+    MAX_CHUNK_SIZE = 1024 * 16
 
     # become a server
     def assume_server_role!
@@ -80,6 +82,46 @@ module Protocol
     end
     alias :send_request  :send_message
     alias :send_response :send_message
+
+    #
+    # Receives data from the network.
+    #
+    # In this case the data will be chunks of a serialized object which
+    # will be buffered until the whole transmission has finished.
+    #
+    # It will then unresialize it and pass it to receive_object().
+    #
+    def receive_data( data )
+        (@buf ||= '') << data
+
+        while @buf.size >= 4
+            if @buf.size >= 4 + ( size = @buf.unpack( 'N' ).first )
+                @buf.slice!( 0, 4 )
+                receive_object( serializer.load( @buf.slice!( 0, size ) ) )
+            else
+                break
+            end
+        end
+    end
+
+    #
+    # Sends a ruby object over the network
+    #
+    # Will split the object in chunks of MAX_CHUNK_SIZE and transmit one at a time.
+    #
+    def send_object( obj )
+        data = serializer.dump( obj )
+        packed = [data.bytesize, data].pack( 'Na*' )
+
+        while( packed )
+            if packed.bytesize > MAX_CHUNK_SIZE
+                send_data( packed.slice!( 0, MAX_CHUNK_SIZE ) )
+            else
+                send_data( packed )
+                break
+            end
+        end
+    end
 
     #
     # Returns the preferred serializer based on the 'serializer' option of the server.
