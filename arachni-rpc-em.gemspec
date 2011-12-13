@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
       s.name              = "arachni-rpc-em"
       s.version           = Arachni::RPC::EM::VERSION
       s.date              = Time.now.strftime('%Y-%m-%d')
-      s.summary           = "The RPC client and server used by the Arachni WebAppSec scanner."
+      s.summary           = "The RPC client and server used by the Arachni WebAppSec scanner Grid."
       s.homepage          = "https://github.com/Arachni/arachni-rpc"
       s.email             = "tasos.laskos@gmail.com"
       s.authors           = [ "Tasos Laskos" ]
@@ -28,11 +28,13 @@ Gem::Specification.new do |s|
       s.extra_rdoc_files  = %w( README.md LICENSE.md CHANGELOG.md )
       s.rdoc_options      = ["--charset=UTF-8"]
 
-      s.add_dependency "eventmachine",  "~> 1.0.0.beta.4"
-      s.add_dependency "em-synchrony",  "~> 1.0.0"
+      s.add_dependency "eventmachine",  ">= 1.0.0.beta.4"
+      s.add_dependency "em-synchrony",  ">= 1.0.0"
+      s.add_dependency "arachni-rpc",   "= 0.1"
 
       s.description = <<description
-        EventMachine based RPC client and server capable of a few thousands requests per second (depending on call size, network conditions and the like).
-        It supports TLS encryption, asynchronous and synchronous requests and is capable of handling remote asynchronous calls that require a block.
+        EventMachine-based client and server implementation of Arachni-RPC supporting
+        TLS encryption, asynchronous and synchronous requests and
+        capable of handling remote asynchronous calls that require a block.
 description
 end
