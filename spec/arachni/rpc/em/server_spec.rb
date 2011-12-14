@@ -1,4 +1,4 @@
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../../', 'spec_helper' )
+require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../../../', 'spec_helper' )
 
 class Arachni::RPC::EM::Server
     public :async?, :async_check, :object_exist?, :public_method?
