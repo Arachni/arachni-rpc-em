@@ -12,6 +12,8 @@ require 'rubygems'
 require 'rspec'
 require 'rspec/core/rake_task'
 
+require File.expand_path( File.dirname( __FILE__ ) ) + '/lib/arachni/rpc/em/version'
+
 RSpec::Core::RakeTask.new do |t|
   t.rspec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
 end
@@ -58,8 +60,6 @@ end
 desc "Build and install the arachni gem."
 task :install  => [ :build ] do
 
-    require File.expand_path( File.dirname( __FILE__ ) ) + '/lib/arachni/rpc/em/version'
-
     sh "gem install arachni-rpc-em-#{Arachni::RPC::EM::VERSION}.gem"
 end
 
@@ -69,8 +69,6 @@ end
 #
 desc "Push a new version to Gemcutter"
 task :publish => [ :build ] do
-
-    require File.expand_path( File.dirname( __FILE__ ) ) + '/lib/arachni/rpc/version'
 
     sh "gem push arachni-rpc-em-#{Arachni::RPC::EM::VERSION}.gem"
 end
