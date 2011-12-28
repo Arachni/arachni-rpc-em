@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
 
       s.add_dependency "eventmachine",  ">= 1.0.0.beta.4"
       s.add_dependency "em-synchrony",  ">= 1.0.0"
-      s.add_dependency "arachni-rpc",   "= 0.1"
+      s.add_dependency "arachni-rpc",   "= 0.1.1"
 
       s.description = <<description
         EventMachine-based client and server implementation of Arachni-RPC supporting
