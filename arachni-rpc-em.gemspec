@@ -1,10 +1,8 @@
 =begin
-                  Arachni
-  Copyright (c) 2010-2011 Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 
-  This is free software; you can copy and distribute and modify
-  this program under the term of the GPL v2.0 License
-  (See LICENSE file for details)
+    This file is part of the Arachni-RPC EM project and may be subject to
+    redistribution and commercial restrictions. Please see the Arachni-RPC EM
+    web site for more information on licensing and terms of use.
 
 =end
 

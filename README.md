@@ -2,7 +2,7 @@
 <table>
     <tr>
         <th>Version</th>
-        <td>0.1</td>
+        <td>0.1.1</td>
     </tr>
     <tr>
         <th>Github page</th>
@@ -26,7 +26,7 @@
     </tr>
     <tr>
         <th>License</th>
-        <td><a href="file.LICENSE.html">GNU General Public License v2</a></td>
+        <td><a href="file.LICENSE.html">3-clause BSD</a></td>
     </tr>
 </table>
 
@@ -81,6 +81,6 @@ Please send your feedback using Github's issue system at
 
 
 ## License
-Arachni is licensed under the GNU General Public License v2.<br/>
+Arachni-RPC EM is provided under the 3-clause BSD license.<br/>
 See the [LICENSE](file.LICENSE.html) file for more information.
 
