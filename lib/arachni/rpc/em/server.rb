@@ -19,13 +19,9 @@ module EM
 # - asynchronous and synchronous requests
 # - handling asynchronous methods that require a block
 #
-# @author: Tasos "Zapotek" Laskos
-#                                      <tasos.laskos@gmail.com>
-#                                      <zapotek@segfault.gr>
-# @version: 0.1
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 class Server
-
     include ::Arachni::RPC::Exceptions
 
     #
@@ -36,10 +32,7 @@ class Server
     #
     # It also handles and forwards exceptions.
     #
-    # @author: Tasos "Zapotek" Laskos
-    #                                      <tasos.laskos@gmail.com>
-    #                                      <zapotek@segfault.gr>
-    # @version: 0.1
+    # @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
     #
     class Proxy < EventMachine::Connection
 
@@ -269,11 +262,10 @@ class Server
         @methods[name] = Set.new # no lookup overhead please :)
         @async_methods[name] = Set.new
 
-        obj.class.public_instance_methods( false ).each {
-            |method|
+        obj.class.public_instance_methods( false ).each do |method|
             @methods[name] << method.to_s
             @async_methods[name] << method.to_s if async_check( obj.method( method ) )
-        }
+        end
     end
 
     #
@@ -292,9 +284,7 @@ class Server
     # Runs the server and blocks.
     #
     def run
-        Arachni::RPC::EM.add_to_reactor {
-            start
-        }
+        Arachni::RPC::EM.add_to_reactor { start }
         Arachni::RPC::EM.block!
     end
 
@@ -345,14 +335,14 @@ class Server
             }
         end
 
-        return res
+        res
     end
 
     #
     # @return   [TrueClass]
     #
     def alive?
-        return true
+        true
     end
 
     #
@@ -365,7 +355,7 @@ class Server
 
         # don't die before returning
         EventMachine::add_timer( wait_for ) { ::EM.stop }
-        return true
+        true
     end
 
     private
@@ -375,11 +365,8 @@ class Server
     end
 
     def async_check( method )
-        @async_checks.each {
-            |check|
-            return true if check.call( method )
-        }
-        return false
+        @async_checks.each { |check| return true if check.call( method ) }
+        false
     end
 
 
@@ -399,7 +386,6 @@ class Server
 
     def parse_expr( expr )
         parts = expr.to_s.split( '.' )
-
         # method name, object name
         [ parts.pop, parts.join( '.' ) ]
     end

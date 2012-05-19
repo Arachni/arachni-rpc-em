@@ -3,11 +3,8 @@ require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../../../', 's
 describe Arachni::RPC::EM::Client do
 
     before( :all ) do
-        @arg = [
-            'one',
-            2,
-            { :three => 3 },
-            [ 4 ]
+        @arg = [ 'one', 2,
+            { :three => 3 }, [ 4 ]
         ]
     end
 
@@ -27,11 +24,10 @@ describe Arachni::RPC::EM::Client do
             end
 
             it "should be able to perform asynchronous calls" do
-                start_client( rpc_opts ).call( 'test.foo', @arg ) {
-                    |res|
+                start_client( rpc_opts ).call( 'test.foo', @arg ) do |res|
                     @arg.should == res
                     ::EM.stop
-                }
+                end
                 Arachni::RPC::EM.block!
             end
         end
@@ -39,25 +35,21 @@ describe Arachni::RPC::EM::Client do
         context "when run inside the Reactor loop" do
 
             it "should be able to perform synchronous calls" do
-                ::EM.run do
-
+                ::EM.run {
                     ::Arachni::RPC::EM::Synchrony.run do
                         @arg.should == start_client( rpc_opts ).call( 'test.foo', @arg )
                         ::EM.stop
                     end
-                end
+                }
             end
 
             it "should be able to perform asynchronous calls" do
-                ::EM.run do
-
-                    start_client( rpc_opts ).call( 'test.foo', @arg ) {
-                        |res|
+                ::EM.run {
+                    start_client( rpc_opts ).call( 'test.foo', @arg ) do |res|
                         res.should == @arg
                         ::EM.stop
-                    }
-
-                end
+                    end
+                }
             end
 
         end
@@ -72,11 +64,10 @@ describe Arachni::RPC::EM::Client do
 
         it "should be able to properly forward synchronous calls" do
             test = Arachni::RPC::RemoteObjectMapper.new( start_client( rpc_opts ), 'test' )
-            test.foo( @arg ) {
-                |res|
+            test.foo( @arg ) do |res|
                 res.should == @arg
                 ::EM.stop
-            }
+            end
             Arachni::RPC::EM.block!
         end
     end
@@ -85,29 +76,26 @@ describe Arachni::RPC::EM::Client do
         context 'when performing asynchronous calls' do
 
             it "should be returned when requesting inexistent objects" do
-                start_client( rpc_opts ).call( 'bar.foo' ) {
-                    |res|
+                start_client( rpc_opts ).call( 'bar.foo' ) do |res|
                     res.rpc_invalid_object_error?.should be_true
                     ::EM.stop
-                }
+                end
                 Arachni::RPC::EM.block!
             end
 
             it "should be returned when requesting inexistent or non-public methods" do
-                start_client( rpc_opts ).call( 'test.bar' ) {
-                    |res|
+                start_client( rpc_opts ).call( 'test.bar' ) do |res|
                     res.rpc_invalid_method_error?.should be_true
                     ::EM.stop
-                }
+                end
                 Arachni::RPC::EM.block!
             end
 
             it "should be returned when there's a remote exception" do
-                start_client( rpc_opts ).call( 'test.foo' ) {
-                    |res|
+                start_client( rpc_opts ).call( 'test.foo' ) do |res|
                     res.rpc_remote_exception?.should be_true
                     ::EM.stop
-                }
+                end
                 Arachni::RPC::EM.block!
             end
 
@@ -146,34 +134,27 @@ describe Arachni::RPC::EM::Client do
     it "should be able to retain stability and consistency under heavy load" do
         client = start_client( rpc_opts )
 
-        n    = 1000
+        n    = 400
         cnt  = 0
 
         mismatches = []
-
-        n.times {
-            |i|
-            client.call( 'test.foo', i ) {
-                |res|
-
+        n.times do |i|
+            client.call( 'test.foo', i ) do |res|
                 cnt += 1
-
                 mismatches << [i, res] if i != res
                 ::EM.stop if cnt == n || !mismatches.empty?
-            }
-        }
+            end
+        end
 
         Arachni::RPC::EM.block!
-
         mismatches.should be_empty
     end
 
     it "should throw error when connecting to inexistent server" do
-        start_client( rpc_opts.merge( :port => 9999 ) ).call( 'test.foo', @arg ) {
-            |res|
+        start_client( rpc_opts.merge( :port => 9999 ) ).call( 'test.foo', @arg ) do |res|
             res.rpc_connection_error?.should be_true
             ::EM.stop
-        }
+        end
         Arachni::RPC::EM.block!
     end
 
@@ -187,23 +168,21 @@ describe Arachni::RPC::EM::Client do
 
     context "when using invalid SSL primitives" do
         it "should not be able to establish a connection" do
-            start_client( rpc_opts_with_invalid_ssl_primitives ).call( 'test.foo', @arg ){
-                |res|
+            start_client( rpc_opts_with_invalid_ssl_primitives ).call( 'test.foo', @arg ) do |res|
                 res.rpc_connection_error?.should be_true
                 ::EM.stop
-            }
+            end
             Arachni::RPC::EM.block!
         end
     end
 
     context "when using mixed SSL primitives" do
         it "should not be able to establish a connection" do
-            start_client( rpc_opts_with_mixed_ssl_primitives ).call( 'test.foo', @arg ){
-                |res|
+            start_client( rpc_opts_with_mixed_ssl_primitives ).call( 'test.foo', @arg ) do |res|
                 res.rpc_connection_error?.should be_true
                 res.rpc_ssl_error?.should be_true
                 ::EM.stop
-            }
+            end
             Arachni::RPC::EM.block!
         end
     end

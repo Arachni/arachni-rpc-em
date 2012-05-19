@@ -7,13 +7,17 @@
 =end
 
 require 'rubygems'
-require 'rspec'
-require 'rspec/core/rake_task'
 
 require File.expand_path( File.dirname( __FILE__ ) ) + '/lib/arachni/rpc/em/version'
 
-RSpec::Core::RakeTask.new do |t|
-  t.rspec_opts = ['--options', "\"#{File.dirname(__FILE__)}/spec/spec.opts\""]
+begin
+    require 'rspec'
+    require 'rspec/core/rake_task'
+
+    RSpec::Core::RakeTask.new
+rescue LoadError => e
+    puts 'If you want to run the tests please install rspec first:'
+    puts '  gem install rspec'
 end
 
 desc "Generate docs"

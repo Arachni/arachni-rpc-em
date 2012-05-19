@@ -40,13 +40,9 @@ module EM
 #
 # @see https://gist.github.com/1151454
 #
-# @author: Tasos "Zapotek" Laskos
-#                                      <tasos.laskos@gmail.com>
-#                                      <zapotek@segfault.gr>
-# @version: 0.1
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module SSL
-
     include ::Arachni::RPC::EM::ConnectionUtilities
 
     #
@@ -58,13 +54,11 @@ module SSL
 
         ssl_opts = {}
         if ssl_opts?
-
             ssl_opts = {
-                    :private_key_file => @opts[:ssl_pkey],
-                    :cert_chain_file  => @opts[:ssl_cert],
-                    :verify_peer      => true
-                }
-
+                private_key_file: @opts[:ssl_pkey],
+                cert_chain_file:  @opts[:ssl_cert],
+                verify_peer:      true
+            }
             @last_seen_cert = nil
         end
 
@@ -110,7 +104,7 @@ module SSL
             end
         end
 
-        return @ca_store
+        @ca_store
     end
 
     #
@@ -134,12 +128,12 @@ module SSL
             ca_store.add_cert( @last_seen_cert ) if !@last_seen_cert.root?
 
             @verified_peer = true
-            return true
+            true
         else
             log( :error, 'SSL',
                 "#{ca_store.error_string.capitalize} ['#{peer_ip_addr}']."
             )
-            return false
+            false
         end
     end
 

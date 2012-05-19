@@ -19,13 +19,9 @@ module EM
 # - asynchronous and synchronous requests
 # - handling remote asynchronous calls that require a block
 #
-# @author: Tasos "Zapotek" Laskos
-#                                      <tasos.laskos@gmail.com>
-#                                      <zapotek@segfault.gr>
-# @version: 0.1
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 class Client
-
     include ::Arachni::RPC::Exceptions
 
     #
@@ -34,17 +30,20 @@ class Client
     # It's responsible for TLS, storing and calling callbacks as well as
     # serializing, transmitting and receiving objects.
     #
-    # @author: Tasos "Zapotek" Laskos
-    #                                      <tasos.laskos@gmail.com>
-    #                                      <zapotek@segfault.gr>
-    # @version: 0.1
+    # @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
     #
     class Handler < EventMachine::Connection
         include ::Arachni::RPC::EM::Protocol
         include ::Arachni::RPC::EM::ConnectionUtilities
 
+        DEFAULT_TRIES = 9
+
         def initialize( opts )
             @opts = opts
+            @max_retries = @opts[:max_retries] || DEFAULT_TRIES
+            @opts[:tries] ||= 0
+            @tries = @opts[:tries]
+
             @status = :idle
 
             @request = nil
@@ -59,11 +58,14 @@ class Client
         def unbind( reason )
             end_ssl
 
-            if @request && @request.callback && @status != :done
-                e = Arachni::RPC::Exceptions::ConnectionError.new( "Connection closed [#{reason}]" )
-                @request.callback.call( e )
+            if @request && @request.callback && status != :done
+                if reason == Errno::ECONNREFUSED && retry?
+                    retry_request
+                else
+                    e = Arachni::RPC::Exceptions::ConnectionError.new( "Connection closed [#{reason}]" )
+                    @request.callback.call( e )
+                end
             end
-
             @status = :closed
         end
 
@@ -81,30 +83,41 @@ class Client
         # @param    [Arachni::RPC::EM::Response]    res
         #
         def receive_response( res )
+            @status = :done
 
             if exception?( res )
                 res.obj = Arachni::RPC::Exceptions.from_response( res )
             end
 
+
             if cb = @request.callback
 
-                callback = Proc.new {
-                    |obj|
+                callback = Proc.new do |obj|
                     cb.call( obj )
-
-                    @status = :done
                     close_connection
-                }
+                end
 
                 if @request.defer?
                     # the callback might block a bit so tell EM to put it in a thread
-                    ::EM.defer {
-                        callback.call( res.obj )
-                    }
+                    ::EM.defer { callback.call( res.obj ) }
                 else
                     callback.call( res.obj )
                 end
             end
+        end
+
+        def retry_request
+            opts = @opts.dup
+            opts[:tries] += 1
+            EventMachine::Timer.new( 0.1 ){
+                sleep( 0.1 )
+                close_connection
+                ::EM.connect( opts[:host], opts[:port], self.class, opts ).send_request( @request )
+            }
+        end
+
+        def retry?
+            @tries < @max_retries
         end
 
         # @param    [Arachni::RPC::EM::Response]    res
@@ -149,6 +162,8 @@ class Client
     #        # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #        :serializer => Marshal,
     #
+    #        :max_retries => 0,
+    #
     #        #
     #        # In order to enable peer verification one must first provide
     #        # the following:
@@ -164,9 +179,8 @@ class Client
     # @param    [Hash]  opts
     #
     def initialize( opts )
-
         begin
-            @opts  = opts.merge( :role => :client )
+            @opts  = opts.merge( role: :client )
             @token = @opts[:token]
 
             @host, @port = @opts[:host], @opts[:port]
@@ -199,22 +213,21 @@ class Client
     #    res = server.call( 'handler.method', arg1, arg2 )
     #
     # @param    [String]    msg     in the form of <i>handler.method</i>
-    # @param    [Array]     args    collection of argumenta to be passed to the method
+    # @param    [Array]     args    collection of arguments to be passed to the method
     # @param    [Proc]      &block
     #
     def call( msg, *args, &block )
-
         req = Request.new(
-            :message  => msg,
-            :args     => args,
-            :callback => block,
-            :token    => @token
+            message:  msg,
+            args:     args,
+            callback: block,
+            token:    @token
         )
 
         if block_given?
             call_async( req )
         else
-            return call_sync( req )
+            call_sync( req )
         end
     end
 
@@ -232,17 +245,16 @@ class Client
     end
 
     def call_sync( req )
-
         ret = nil
+
         # if we're in the Reactor thread use a Fiber and if we're not
         # use a Thread
         if !::EM::reactor_thread?
             t = Thread.current
-            call_async( req ) {
-                |obj|
+            call_async( req ) do |obj|
                 t.wakeup
                 ret = obj
-            }
+            end
             sleep
         else
             # Fibers do not work across threads so don't defer the callback
@@ -250,10 +262,7 @@ class Client
             req.do_not_defer!
 
             f = Fiber.current
-            call_async( req ) {
-                |obj|
-                f.resume( obj )
-            }
+            call_async( req ) { |obj| f.resume( obj ) }
 
             begin
                 ret = Fiber.yield
@@ -268,7 +277,7 @@ class Client
         end
 
         raise ret if ret.is_a?( Exception )
-        return ret
+        ret
     end
 
 end

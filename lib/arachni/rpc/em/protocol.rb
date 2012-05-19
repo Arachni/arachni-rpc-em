@@ -13,10 +13,7 @@ module EM
 #
 # Provides helper transport methods for {Message} transmission.
 #
-# @author: Tasos "Zapotek" Laskos
-#                                      <tasos.laskos@gmail.com>
-#                                      <zapotek@segfault.gr>
-# @version: 0.1
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module Protocol
     include ::Arachni::RPC::EM::SSL

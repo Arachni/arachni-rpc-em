@@ -12,19 +12,14 @@ module RPC
 #
 # Provides some convenient methods for EventMachine's Reactor.
 #
-# @author: Tasos "Zapotek" Laskos
-#                                      <tasos.laskos@gmail.com>
-#                                      <zapotek@segfault.gr>
-# @version: 0.1
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module EM
 
 module Synchrony
 
     def run( &block )
-        @@root_f = Fiber.new {
-            block.call
-        }.resume
+        @@root_f = Fiber.new { block.call }.resume
     end
 
     extend self

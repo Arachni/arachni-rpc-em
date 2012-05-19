@@ -13,10 +13,7 @@ module EM
 #
 # Helper methods to be included in EventMachine::Connection classes
 #
-# @author: Tasos "Zapotek" Laskos
-#                                      <tasos.laskos@gmail.com>
-#                                      <zapotek@segfault.gr>
-# @version: 0.1
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module ConnectionUtilities
 

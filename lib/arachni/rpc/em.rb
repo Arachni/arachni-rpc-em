@@ -16,9 +16,10 @@ require 'arachni/rpc'
 require 'yaml'
 YAML::ENGINE.yamler = 'syck'
 
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), 'em', 'connection_utilities' )
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), 'em', 'ssl' )
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), 'em', 'protocol' )
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), 'em', 'server' )
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), 'em', 'client' )
-require File.join( File.expand_path( File.dirname( __FILE__ ) ), 'em', 'em' )
+dir = File.expand_path( File.dirname( __FILE__ ) )
+require File.join( dir, 'em', 'connection_utilities' )
+require File.join( dir, 'em', 'ssl' )
+require File.join( dir, 'em', 'protocol' )
+require File.join( dir, 'em', 'server' )
+require File.join( dir, 'em', 'client' )
+require File.join( dir, 'em', 'em' )
