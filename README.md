@@ -33,7 +33,6 @@
 ## Synopsis
 
 Arachni-RPC EM is an implementation of the <a href="http://github.com/Arachni/arachni-rpc">Arachni-RPC</a> protocol using EventMachine and provides both a server and a client. <br/>
-It is under development and will ultimately form the basis for <a href="http://arachni.segfault.gr">Arachni</a>'s Grid infrastructure.
 
 ## Features
 
