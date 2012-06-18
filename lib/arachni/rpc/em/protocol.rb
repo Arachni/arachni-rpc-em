@@ -70,9 +70,7 @@ module Protocol
     # @param    [Arachni::RPC::EM::Message]    msg
     #
     def send_message( msg )
-        ::EM.schedule {
-            send_object( msg.prepare_for_tx )
-        }
+        ::EM.schedule { send_object( msg.prepare_for_tx ) }
     end
     alias :send_request  :send_message
     alias :send_response :send_message
@@ -125,7 +123,7 @@ module Protocol
         data = serializer.dump( obj )
         packed = [data.bytesize, data].pack( 'Na*' )
 
-        while( packed )
+        while packed
             if packed.bytesize > MAX_CHUNK_SIZE
                 send_data( packed.slice!( 0, MAX_CHUNK_SIZE ) )
             else

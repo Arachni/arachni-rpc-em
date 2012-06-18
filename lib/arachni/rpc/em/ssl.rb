@@ -113,7 +113,6 @@ module SSL
     # @see http://eventmachine.rubyforge.org/EventMachine/Connection.html#M000271
     #
     def ssl_verify_peer( cert_string )
-
         cert = OpenSSL::X509::Certificate.new( cert_string )
 
         # Some servers send the same certificate multiple times. I'm not even
