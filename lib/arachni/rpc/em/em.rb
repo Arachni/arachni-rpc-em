@@ -40,7 +40,6 @@ end
     # @param    [Proc]    &block    block to be included in the Reactor loop
     #
     def add_to_reactor( &block )
-
         self.init
 
         # if we're already in the Reactor thread just run the block straight up.
