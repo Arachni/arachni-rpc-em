@@ -8,8 +8,8 @@ end
 describe Arachni::RPC::EM::Server do
 
     before( :all ) do
-        @opts = rpc_opts.merge( :port => 7333 )
-        @server, t = start_server( @opts )
+        @opts = rpc_opts.merge( port: 7333 )
+        @server = start_server( @opts, true )
     end
 
     describe "#initialize" do
