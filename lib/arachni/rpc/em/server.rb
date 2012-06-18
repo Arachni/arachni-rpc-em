@@ -35,7 +35,6 @@ class Server
     # @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
     #
     class Proxy < EventMachine::Connection
-
         include ::Arachni::RPC::EM::Protocol
         include ::Arachni::RPC::Exceptions
         include ::Arachni::RPC::EM::ConnectionUtilities
@@ -149,7 +148,7 @@ class Server
                     msg + " [on behalf of #{peer_ip_addr}]"
                 }
 
-                raise( InvalidToken.new( msg ) )
+                raise InvalidToken.new( msg )
             end
         end
 
@@ -284,7 +283,7 @@ class Server
     # Runs the server and blocks.
     #
     def run
-        Arachni::RPC::EM.add_to_reactor { start }
+        Arachni::RPC::EM.schedule { start }
         Arachni::RPC::EM.block!
     end
 
@@ -328,11 +327,10 @@ class Server
         if !res.async?
             res.obj = @objects[obj_name].send( meth_name.to_sym, *args )
         else
-            @objects[obj_name].send( meth_name.to_sym, *args ){
-                |obj|
+            @objects[obj_name].send( meth_name.to_sym, *args ) do |obj|
                 res.obj = obj
                 connection.send_response( res )
-            }
+            end
         end
 
         res
