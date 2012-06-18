@@ -7,7 +7,6 @@
 =end
 
 require 'rubygems'
-
 require File.expand_path( File.dirname( __FILE__ ) ) + '/lib/arachni/rpc/em/version'
 
 begin
@@ -20,8 +19,9 @@ rescue LoadError => e
     puts '  gem install rspec'
 end
 
-desc "Generate docs"
+task default: [ :spec ]
 
+desc "Generate docs"
 task :docs do
 
     outdir = "../arachni-rpc-pages"
@@ -36,39 +36,22 @@ task :docs do
     sh "rm -rf .yard*"
 end
 
-
-#
-# Cleans reports and logs
-#
 desc "Cleaning..."
 task :clean do
     sh "rm *.gem || true"
 end
 
-
-
-#
-# Building
-#
 desc "Build the arachni-rpc-em gem."
 task :build => [ :clean ] do
     sh "gem build arachni-rpc-em.gemspec"
 end
 
-
-#
-# Installing
-#
 desc "Build and install the arachni gem."
 task :install  => [ :build ] do
 
     sh "gem install arachni-rpc-em-#{Arachni::RPC::EM::VERSION}.gem"
 end
 
-
-#
-# Publishing
-#
 desc "Push a new version to Gemcutter"
 task :publish => [ :build ] do
 
