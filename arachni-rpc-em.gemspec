@@ -20,15 +20,14 @@ Gem::Specification.new do |s|
       s.files             = %w( README.md Rakefile LICENSE.md CHANGELOG.md )
       s.files            += Dir.glob("lib/**/**")
       s.files            += Dir.glob("examples/**/**")
-      s.test_files        = Dir.glob("examples/**/**")
-      s.test_files       += Dir.glob("spec/**/**")
+      s.test_files        = Dir.glob("spec/**/**")
 
       s.extra_rdoc_files  = %w( README.md LICENSE.md CHANGELOG.md )
       s.rdoc_options      = ["--charset=UTF-8"]
 
       s.add_dependency "eventmachine",  ">= 1.0.0.beta.4"
       s.add_dependency "em-synchrony",  ">= 1.0.0"
-      s.add_dependency "arachni-rpc",   "= 0.1.1"
+      s.add_dependency "arachni-rpc",   "= 0.1.2"
 
       s.description = <<description
         EventMachine-based client and server implementation of Arachni-RPC supporting

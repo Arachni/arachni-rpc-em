@@ -259,7 +259,7 @@ class Client
         else
             # Fibers do not work across threads so don't defer the callback
             # once the Handler gets to it
-            req.do_not_defer!
+            req.do_not_defer
 
             f = Fiber.current
             call_async( req ) { |obj| f.resume( obj ) }
