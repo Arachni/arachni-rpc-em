@@ -284,7 +284,7 @@ class Server
     #
     def run
         Arachni::RPC::EM.schedule { start }
-        Arachni::RPC::EM.block!
+        Arachni::RPC::EM.block
     end
 
     #

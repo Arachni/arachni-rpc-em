@@ -185,7 +185,7 @@ class Client
 
             @host, @port = @opts[:host], @opts[:port]
 
-            Arachni::RPC::EM.ensure_em_running!
+            Arachni::RPC::EM.ensure_em_running
         rescue EventMachine::ConnectionError => e
             exc = ConnectionError.new( e.to_s + " for '#{@k}'." )
             exc.set_backtrace( e.backtrace )

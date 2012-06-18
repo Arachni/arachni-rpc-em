@@ -28,7 +28,7 @@ describe Arachni::RPC::EM::Client do
                     @arg.should == res
                     ::EM.stop
                 end
-                Arachni::RPC::EM.block!
+                Arachni::RPC::EM.block
             end
         end
 
@@ -68,7 +68,7 @@ describe Arachni::RPC::EM::Client do
                 res.should == @arg
                 ::EM.stop
             end
-            Arachni::RPC::EM.block!
+            Arachni::RPC::EM.block
         end
     end
 
@@ -80,7 +80,7 @@ describe Arachni::RPC::EM::Client do
                     res.rpc_invalid_object_error?.should be_true
                     ::EM.stop
                 end
-                Arachni::RPC::EM.block!
+                Arachni::RPC::EM.block
             end
 
             it "should be returned when requesting inexistent or non-public methods" do
@@ -88,7 +88,7 @@ describe Arachni::RPC::EM::Client do
                     res.rpc_invalid_method_error?.should be_true
                     ::EM.stop
                 end
-                Arachni::RPC::EM.block!
+                Arachni::RPC::EM.block
             end
 
             it "should be returned when there's a remote exception" do
@@ -96,7 +96,7 @@ describe Arachni::RPC::EM::Client do
                     res.rpc_remote_exception?.should be_true
                     ::EM.stop
                 end
-                Arachni::RPC::EM.block!
+                Arachni::RPC::EM.block
             end
 
         end
@@ -138,6 +138,7 @@ describe Arachni::RPC::EM::Client do
         cnt  = 0
 
         mismatches = []
+
         n.times do |i|
             client.call( 'test.foo', i ) do |res|
                 cnt += 1
@@ -146,7 +147,8 @@ describe Arachni::RPC::EM::Client do
             end
         end
 
-        Arachni::RPC::EM.block!
+        Arachni::RPC::EM.block
+        cnt.should > 0
         mismatches.should be_empty
     end
 
@@ -155,7 +157,7 @@ describe Arachni::RPC::EM::Client do
             res.rpc_connection_error?.should be_true
             ::EM.stop
         end
-        Arachni::RPC::EM.block!
+        Arachni::RPC::EM.block
     end
 
     context "when using valid SSL primitives" do
@@ -172,7 +174,7 @@ describe Arachni::RPC::EM::Client do
                 res.rpc_connection_error?.should be_true
                 ::EM.stop
             end
-            Arachni::RPC::EM.block!
+            Arachni::RPC::EM.block
         end
     end
 
@@ -183,7 +185,7 @@ describe Arachni::RPC::EM::Client do
                 res.rpc_ssl_error?.should be_true
                 ::EM.stop
             end
-            Arachni::RPC::EM.block!
+            Arachni::RPC::EM.block
         end
     end
 

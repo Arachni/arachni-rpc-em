@@ -30,14 +30,14 @@ module EM
     # @param    [Proc]    &block
     #
     def schedule( &block )
-        ensure_em_running!
+        ensure_em_running
         ::EM.schedule( &block )
     end
 
     #
     # Blocks until the Reactor stops running
     #
-    def block!
+    def block
         # beware of deadlocks, we can't join our own thread
         ::EM.reactor_thread.join if ::EM.reactor_thread && !::EM::reactor_thread?
     end
@@ -45,7 +45,7 @@ module EM
     #
     # Puts the Reactor in its own thread and runs it.
     #
-    def ensure_em_running!
+    def ensure_em_running
         if !::EM::reactor_running?
 
             Thread.new do
