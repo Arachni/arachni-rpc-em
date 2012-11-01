@@ -82,62 +82,53 @@ class Server
 
             # the method call may block a little so tell EventMachine to
             # stick it in its own thread.
-            # ::EM.defer( proc {
-                res  = Response.new
-                peer = peer_ip_addr
+            res  = Response.new
+            peer = peer_ip_addr
 
-                begin
-                    # token-based authentication
-                    authenticate!
+            begin
+                # token-based authentication
+                authenticate!
 
-                    # grab the result of the method call
-                    res.merge!( @server.call( self ) )
+                # grab the result of the method call
+                res.merge!( @server.call( self ) )
 
-                # handle exceptions and convert them to a simple hash,
-                # ready to be passed to the client.
-                rescue Exception => e
+            # handle exceptions and convert them to a simple hash,
+            # ready to be passed to the client.
+            rescue Exception => e
 
-                    type = ''
+                type = ''
 
-                    # if it's an RPC exception pass the type along as is
-                    if e.rpc_exception?
-                        type = e.class.name.split( ':' )[-1]
+                # if it's an RPC exception pass the type along as is
+                if e.rpc_exception?
+                    type = e.class.name.split( ':' )[-1]
 
-                    # otherwise set it to a RemoteExeption
-                    else
-                        type = 'RemoteException'
-                    end
-
-                    res.obj = {
-                        'exception' => e.to_s,
-                        'backtrace' => e.backtrace,
-                        'type'      => type
-                    }
-
-                    msg = "#{e.to_s}\n#{e.backtrace.join( "\n" )}"
-                    @server.logger.error( 'Exception' ){ msg + " [on behalf of #{peer}]" }
+                # otherwise set it to a RemoteExeption
+                else
+                    type = 'RemoteException'
                 end
 
-                # res
-            # }, proc {
-                # |res|
+                res.obj = {
+                    'exception' => e.to_s,
+                    'backtrace' => e.backtrace,
+                    'type'      => type
+                }
 
-                #
-                # pass the result of the RPC call back to the client
-                # along with the callback ID but *only* if it wan't async
-                # because server.call() will have already taken care of it
-                #
-                send_response( res ) if !res.async?
-            # })
+                msg = "#{e.to_s}\n#{e.backtrace.join( "\n" )}"
+                @server.logger.error( 'Exception' ){ msg + " [on behalf of #{peer}]" }
+            end
+
+            #
+            # pass the result of the RPC call back to the client
+            # along with the callback ID but *only* if it wan't async
+            # because server.call() will have already taken care of it
+            #
+            send_response( res ) if !res.async?
         end
 
         #
         # Authenticates the client based on the token in the request.
         #
         # It will raise an exception if the token doesn't check-out.
-        #
-        # @param    [String]    peer    IP address of the client
-        # @param    [Hash]      req     request
         #
         def authenticate!
             if !valid_token?( @request.token )
@@ -148,7 +139,7 @@ class Server
                     msg + " [on behalf of #{peer_ip_addr}]"
                 }
 
-                raise InvalidToken.new( msg )
+                fail InvalidToken.new( msg )
             end
         end
 
