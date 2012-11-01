@@ -97,12 +97,7 @@ class Client
                     close_connection
                 end
 
-                if @request.defer?
-                    # the callback might block a bit so tell EM to put it in a thread
-                    ::EM.defer { callback.call( res.obj ) }
-                else
-                    callback.call( res.obj )
-                end
+                callback.call( res.obj )
             end
         end
 
@@ -187,7 +182,7 @@ class Client
 
             Arachni::RPC::EM.ensure_em_running
         rescue EventMachine::ConnectionError => e
-            exc = ConnectionError.new( e.to_s + " for '#{@k}'." )
+            exc = ConnectionError.new( "#{e} for '#{@k}'." )
             exc.set_backtrace( e.backtrace )
             raise exc
         end
@@ -201,10 +196,9 @@ class Client
     # To perform an async call you need to provide a block which will be passed
     # the return value once the method has finished executing.
     #
-    #    server.call( 'handler.method', arg1, arg2 ){
-    #        |res|
+    #    server.call( 'handler.method', arg1, arg2 ) do |res|
     #        do_stuff( res )
-    #    }
+    #    end
     #
     #
     # To perform a sync (blocking) call do not pass a block, the value will be
@@ -224,11 +218,7 @@ class Client
             token:    @token
         )
 
-        if block_given?
-            call_async( req )
-        else
-            call_sync( req )
-        end
+        block_given? ? call_async( req ) : call_sync( req )
     end
 
     private
@@ -257,10 +247,6 @@ class Client
             end
             sleep
         else
-            # Fibers do not work across threads so don't defer the callback
-            # once the Handler gets to it
-            req.do_not_defer
-
             f = Fiber.current
             call_async( req ) { |obj| f.resume( obj ) }
 
