@@ -59,7 +59,7 @@ class Client
             end_ssl
 
             if @request && @request.callback && status != :done
-                if reason == Errno::ECONNREFUSED && retry?
+                if retry? #&& reason == Errno::ECONNREFUSED
                     retry_request
                 else
                     e = Arachni::RPC::Exceptions::ConnectionError.new( "Connection closed [#{reason}]" )
@@ -88,7 +88,6 @@ class Client
             if exception?( res )
                 res.obj = Arachni::RPC::Exceptions.from_response( res )
             end
-
 
             if cb = @request.callback
 
