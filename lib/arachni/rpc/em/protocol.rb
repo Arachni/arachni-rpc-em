@@ -107,7 +107,7 @@ module Protocol
         while @buf.size >= 4
             if @buf.size >= 4 + ( size = @buf.unpack( 'N' ).first )
                 @buf.slice!( 0, 4 )
-                receive_object( serializer.load( @buf.slice!( 0, size ) ) )
+                receive_object( unserialize( @buf.slice!( 0, size ) ) )
             else
                 break
             end
@@ -120,7 +120,7 @@ module Protocol
     # Will split the object in chunks of MAX_CHUNK_SIZE and transmit one at a time.
     #
     def send_object( obj )
-        data = serializer.dump( obj )
+        data = serialize( obj )
         packed = [data.bytesize, data].pack( 'Na*' )
 
         while packed
@@ -134,7 +134,7 @@ module Protocol
     end
 
     #
-    # Returns the preferred serializer based on the 'serializer' option of the server.
+    # Returns the preferred  based on the 'serializer' option of the server.
     #
     # Defaults to <i>YAML</i>.
     #
@@ -144,6 +144,14 @@ module Protocol
     #
     def serializer
         @opts[:serializer] ? @opts[:serializer] : YAML
+    end
+
+    def serialize( obj )
+        serializer.dump obj
+    end
+
+    def unserialize( obj )
+        serializer.load obj
     end
 
 end
