@@ -143,7 +143,13 @@ module Protocol
     # @see http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #
     def serializer
+        return @opts[:client_serializer] if @opts[:client_serializer]
+
         @opts[:serializer] ? @opts[:serializer] : YAML
+    end
+
+    def fallback_serializer
+        @opts[:fallback_serializer] ? @opts[:serializer] : YAML
     end
 
     def serialize( obj )
@@ -151,7 +157,22 @@ module Protocol
     end
 
     def unserialize( obj )
-        serializer.load obj
+        begin
+            r = serializer.load( obj )
+
+            if !r.is_a?( Hash ) && @opts[:fallback_serializer]
+                r = @opts[:fallback_serializer].load( obj )
+                @opts[:client_serializer] = @opts[:fallback_serializer]
+            end
+
+            r
+        rescue Exception => e
+            raise if !@opts[:fallback_serializer]
+
+            @opts[:client_serializer] = @opts[:fallback_serializer]
+
+            @opts[:fallback_serializer].load obj
+        end
     end
 
 end

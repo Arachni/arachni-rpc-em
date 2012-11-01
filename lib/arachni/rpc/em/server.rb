@@ -178,6 +178,9 @@ class Server
     #        # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #        :serializer => Marshal,
     #
+    #        # serializer to use if the first choice fails
+    #        :fallback_serializer => YAML,
+    #
     #        #
     #        # In order to enable peer verification one must first provide
     #        # the following:
@@ -223,15 +226,14 @@ class Server
     # you can just decide dynamically based on the plethora of data which Ruby provides
     # by its 'Method' class.
     #
-    #    server.add_async_check {
-    #        |method|
+    #    server.add_async_check do |method|
     #        #
     #        # Must return 'true' for async and 'false' for sync.
     #        #
     #        # Very simple check here...
     #        #
     #        'async' ==  method.name.to_s.split( '_' )[0]
-    #    }
+    #    end
     #
     # @param    [Proc]  &block
     #

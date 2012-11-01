@@ -157,6 +157,9 @@ class Client
     #        # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #        :serializer => Marshal,
     #
+    #        # serializer to use if the first choice fails
+    #        :fallback_serializer => YAML,
+    #
     #        :max_retries => 0,
     #
     #        #

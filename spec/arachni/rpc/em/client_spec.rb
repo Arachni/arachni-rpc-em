@@ -15,6 +15,19 @@ describe Arachni::RPC::EM::Client do
         end
     end
 
+    context 'when using a fallback serializer' do
+        context 'and the primary serializer fails' do
+            it 'should use the fallback' do
+                opts = rpc_opts.merge( port: 7333, serializer: YAML )
+                start_client( opts ).call( 'test.foo', @arg ).should == @arg
+
+                opts = rpc_opts.merge( port: 7333, serializer: Marshal )
+                start_client( opts ).call( 'test.foo', @arg ).should == @arg
+            end
+        end
+
+    end
+
     describe "raw interface" do
 
         context "when using Threads" do
