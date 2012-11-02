@@ -38,11 +38,14 @@ Arachni-RPC EM is an implementation of the <a href="http://github.com/Arachni/ar
 
 It's capable of:
 
- - performing and handling a few thousand requests per second (depending on call size, network conditions and the like)
- - TLS encryption (with peer verification)
- - asynchronous and synchronous requests
- - handling server-side asynchronous calls that require a block (or any method that requires a block in general)
- - token-based authentication
+ - Performing and handling a few thousand requests per second (depending on call size, network conditions and the like).
+ - Configurable retry-on-fail for requests.
+ - TLS encryption (with peer verification).
+ - Asynchronous and synchronous requests.
+ - Handling server-side asynchronous calls that require a block (or any method that passes its result to a block instead of returning it).
+ - Token-based authentication.
+ - Primary and secondary (fallback) serializers -- Server will expect the Client to use the primary serializer,
+    if the Request cannot be parsed using the primary one, it will revert on using the fallback to parse the Request and serialize the Response.
 
 ## Usage
 
