@@ -144,16 +144,14 @@ module SSL
     # @see http://eventmachine.rubyforge.org/EventMachine/Connection.html#M000270
     #
     def ssl_handshake_completed
-        if are_we_a_client? && ssl_opts? &&
-           !OpenSSL::SSL.verify_certificate_identity( @last_seen_cert,
-                @opts[:host] )
+        return if !are_we_a_client? || !ssl_opts? ||
+            OpenSSL::SSL.verify_certificate_identity( @last_seen_cert, @opts[:host] )
 
-            log( :error, 'SSL',
-                "The hostname '#{@opts[:host]}' does not match the server certificate."
-            )
+        log( :error, 'SSL',
+             "The hostname '#{@opts[:host]}' does not match the server certificate."
+        )
 
-            close_connection
-        end
+        close_connection
     end
 
     def are_we_a_client?
