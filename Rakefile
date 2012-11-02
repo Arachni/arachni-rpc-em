@@ -19,7 +19,7 @@ rescue LoadError => e
     puts '  gem install rspec'
 end
 
-task default: [ :spec ]
+task default: [ :build, :spec ]
 
 desc "Generate docs"
 task :docs do
@@ -48,12 +48,12 @@ end
 
 desc "Build and install the arachni gem."
 task :install  => [ :build ] do
-
     sh "gem install arachni-rpc-em-#{Arachni::RPC::EM::VERSION}.gem"
 end
 
-desc "Push a new version to Gemcutter"
+desc "Push a new version to Rubygems"
 task :publish => [ :build ] do
-
+    sh "git tag -a v#{Arachni::RPC::EM::VERSION} -m 'Version #{Arachni::RPC::EM::VERSION}"
     sh "gem push arachni-rpc-em-#{Arachni::RPC::EM::VERSION}.gem"
 end
+task :release => [ :publish ]
