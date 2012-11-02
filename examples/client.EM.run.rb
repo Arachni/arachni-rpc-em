@@ -19,19 +19,17 @@ require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../lib/arachni
 
     # connect to the server
     client = Arachni::RPC::EM::Client.new(
-        :host  => 'localhost',
-        :port  => 7332,
+        host:       'localhost',
+        port:       7332,
 
         # optional authentication token, if it doesn't match the one
         # set on the server-side you'll be getting exceptions.
-        :token => 'superdupersecret',
-
-        # :keep_alive => false,
+        token:      'superdupersecret',
 
         # optional serializer (defaults to YAML)
         # see the 'serializer' method at:
         # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
-        :serializer => Marshal
+        serializer: Marshal
     )
 
     bench = Arachni::RPC::RemoteObjectMapper.new( client, 'bench' )
@@ -65,49 +63,14 @@ require File.join( File.expand_path( File.dirname( __FILE__ ) ), '../lib/arachni
     end
 
     # async calls are the same
-    bench.foo( 'This is an async call... business as usual. :)' ) {
-        |res|
+    bench.foo( 'This is an async call... business as usual. :)' ) do |res|
         p res
         # => "This is an async call... business as usual. :)"
-    }
+    end
 
-    bench.async_foo( 'This is an async call to an async remote method.' ) {
-        |res|
+    bench.async_foo( 'This is an async call to an async remote method.' ) do |res|
         p res
         # => "This is an async call to an async remote method."
-    }
-
-
-    #
-    # The system uses 2 methods to make calls appear sync:
-    #   - Threads (when the code is *not* run directly inside the Reactor's thread, see example.rb)
-    #   - Fibers (when the code *is* run inside the Reactor's thread, like right here)
-    #
-    # For performance reasons callbacks are ::EM.defer'ed.
-    #
-    # This means that they're already in their own thread so you don't need
-    # ::Arachni::RPC::EM::EM::Synchrony.run to perform sync calls from inside callbacks.
-    #
-    bench.async_foo( 'Coo-coo' ) {
-        |res|
-
-        p res
-        # => "Coo-coo"
-
-        p bench.async_foo( 'Coo-coo 2' )
-        # => "Coo-coo 2"
-
-        bench.async_foo( 'Coo-coo 3' ) {
-            |res|
-
-            p res
-            # => "Coo-coo 3"
-
-            p bench.foo( 'Coo-coo 4' )
-            # => "Coo-coo 4"
-        }
-
-    }
-
+    end
 
 end

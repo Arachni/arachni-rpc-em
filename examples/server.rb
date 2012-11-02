@@ -13,7 +13,7 @@ require File.join( cwd, '../lib/arachni/rpc/', 'em' )
 
 class Parent
     def foo( arg )
-        return arg
+        arg
     end
 end
 
@@ -38,22 +38,27 @@ class Bench < Parent
 end
 
 server = Arachni::RPC::EM::Server.new(
-    :host  => 'localhost',
-    :port  => 7332,
+    host:       'localhost',
+    port:       7332,
 
     # optional authentication token, if it doesn't match the one
     # set on the client-side the client won't be able to do anything
     # and keep getting exceptions.
-    :token => 'superdupersecret',
+    token:      'superdupersecret',
 
     # optional serializer (defaults to YAML)
     # see the 'serializer' method at:
     # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
-    :serializer => Marshal,
+    #
+    # Use Marshal for performance as the primary serializer.
+    serializer: Marshal,
 
-    # :ssl_ca     => cwd + '/../spec/pems/cacert.pem',
-    # :ssl_pkey   => cwd + '/../spec/pems/server/key.pem',
-    # :ssl_cert   => cwd + '/../spec/pems/server/cert.pem'
+    # Fallback to YAML for interoperability -- used for requests that can't be parsed by Marshal.load.
+    fallback_serializer: YAML,
+
+    # ssl_ca:   cwd + '/../spec/pems/cacert.pem',
+    # ssl_pkey: cwd + '/../spec/pems/server/key.pem',
+    # ssl_cert: cwd + '/../spec/pems/server/cert.pem'
 )
 
 #
@@ -64,15 +69,14 @@ server = Arachni::RPC::EM::Server.new(
 # you can just decide dynamically based on a plethora of data which Ruby provides
 # by its 'Method' class.
 #
-server.add_async_check {
-    |method|
+server.add_async_check do |method|
     #
     # Must return 'true' for async and 'false' for sync.
     #
     # Very simple check here...
     #
-    'async' ==  method.name.to_s.split( '_' )[0]
-}
+    method.name.to_s.start_with? 'async_'
+end
 
 server.add_handler( 'bench', Bench.new )
 

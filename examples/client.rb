@@ -14,45 +14,30 @@ require File.join( cwd, '../lib/arachni/rpc/', 'em' )
 
 # connect to the server
 client = Arachni::RPC::EM::Client.new(
-    :host  => 'localhost',
-    :port  => 7332,
+    host:       'localhost',
+    port:       7332,
 
     # optional authentication token, if it doesn't match the one
     # set on the server-side you'll be getting exceptions.
-    :token => 'superdupersecret',
+    token:      'superdupersecret',
 
     # optional serializer (defaults to YAML)
     # see the 'serializer' method at:
     # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
-    :serializer => Marshal,
-
     #
-    # Connection keep alive is set to true by default, this means that
-    # a single connection will be maintained and all calls will pass
-    # through it.
-    # This bypasses a bug in EventMachine and allows you to perform thousands
-    # of calls without issue.
-    #
-    # However, you are responsible for closing the connection when you're done.
-    #
-    # If keep alive is set to false then each call will go through its own connection
-    # and the responsibility for closing that connection falls on Arachni-RPC.
-    #
-    # Unfortunately, if you try to make a greater number of calls than your system's
-    # maximum open file descriptors limit EventMachine will freak-out.
-    #
-    :keep_alive => false,
+    # Will trigger the Server's fallback serializer.
+    serializer: YAML,
 
     #
     # In order to enable peer verification one must first provide
     # the following:
     #
     # SSL CA certificate
-    # :ssl_ca     => cwd + '/../spec/pems/cacert.pem',
+    # ssl_ca:   cwd + '/../spec/pems/cacert.pem',
     # SSL private key
-    # :ssl_pkey   => cwd + '/../spec/pems/client/key.pem',
+    # ssl_pkey: cwd + '/../spec/pems/client/key.pem',
     # SSL certificate
-    # :ssl_cert   => cwd + '/../spec/pems/client/cert.pem'
+    # ssl_cert: cwd + '/../spec/pems/client/cert.pem'
 )
 
 # Make things easy on the eyes using the mapper, it allows you to do this:
@@ -69,9 +54,7 @@ bench = Arachni::RPC::RemoteObjectMapper.new( client, 'bench' )
 # In order to perform an asynchronous call you will need to provide a block,
 # even if it is an empty one.
 #
-bench.foo( 'This is an async call to "bench.foo".' ) {
-    |res|
-
+bench.foo( 'This is an async call to "bench.foo".' ) do |res|
     p res
     # => "This is an async call to \"bench.foo\"."
 
@@ -98,7 +81,7 @@ bench.foo( 'This is an async call to "bench.foo".' ) {
     # was there an authentication token mismatch?
     # p res.rpc_invalid_token_error?
     # => false
-}
+end
 
 
 
@@ -108,11 +91,10 @@ bench.foo( 'This is an async call to "bench.foo".' ) {
 # You'll need to kind-of specify the async methods on the server-side,
 # check the server example file for more info.
 #
-bench.async_foo( 'This is an async call to "bench.async_foo".' ) {
-    |res|
+bench.async_foo( 'This is an async call to "bench.async_foo".' ) do |res|
     p res
     # => "This is an async call to \"bench.async_foo\"."
-}
+end
 
 p bench.async_foo( 'This is a sync call to "bench.async_foo".' )
 # => "This is a sync call to \"bench.async_foo\"."
@@ -141,7 +123,7 @@ p bench.foo( 'This is a sync call to "bench.foo".' )
 blah = Arachni::RPC::RemoteObjectMapper.new( client, 'blah' )
 begin
     p blah.something
-rescue Exception => e
+rescue => e
     p e  # => #<Arachni::RPC::EM::Exceptions::InvalidObject: Trying to access non-existent object 'blah'.>
 end
 
@@ -150,7 +132,7 @@ end
 #
 begin
     p bench.fdoo
-rescue Exception => e
+rescue => e
     p e # => #<Arachni::RPC::EM::Exceptions::InvalidMethod: Trying to access non-public method 'fdoo'.>
 end
 
@@ -161,8 +143,7 @@ end
 # It will *NOT* be thrown!
 # It will be *RETURNED*!
 #
-blah.something {
-    |res|
+blah.something do |res|
     p res # => #<Arachni::RPC::EM::Exceptions::InvalidObject: Trying to access non-existent object 'blah'.>
 
     # RPC Exception helper methods have been added to all Ruby objects (except BasicObject)
@@ -170,12 +151,12 @@ blah.something {
 
     # p res.rpc_exception? # => true
     # p res.rpc_invalid_object_error? # => true
-}
+end
 
 #
 # We don't know when async calls will return so we wait forever.
 #
 # Call ::EM.stop to break-out.
 #
-Arachni::RPC::EM.block!
+Arachni::RPC::EM.block
 
