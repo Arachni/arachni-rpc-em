@@ -45,7 +45,7 @@ It's capable of:
  - Handling server-side asynchronous calls that require a block (or any method that passes its result to a block instead of returning it).
  - Token-based authentication.
  - Primary and secondary (fallback) serializers -- Server will expect the Client to use the primary serializer,
-    if the Request cannot be parsed using the primary one, it will revert on using the fallback to parse the Request and serialize the Response.
+    if the Request cannot be parsed using the primary one, it will revert to using the fallback to parse the Request and serialize the Response.
 
 ## Usage
 
