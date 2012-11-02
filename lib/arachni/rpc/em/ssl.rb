@@ -88,7 +88,7 @@ module SSL
     #
     def log( severity, progname, msg )
         warn "#{progname}: #{msg}" if severity == :error
-        raise "#{progname}: #{msg}" if severity == :fatal
+        fail "#{progname}: #{msg}" if severity == :fatal
     end
 
     #
@@ -100,7 +100,7 @@ module SSL
                 @ca_store = OpenSSL::X509::Store.new
                 @ca_store.add_file( file )
             else
-                raise "No CA certificate has been provided."
+                fail "No CA certificate has been provided."
             end
         end
 
@@ -149,11 +149,10 @@ module SSL
                 @opts[:host] )
 
             log( :error, 'SSL',
-                "The hostname '#{@server.opts[:host]}' " +
-                "does not match the server certificate."
+                "The hostname '#{@opts[:host]}' does not match the server certificate."
             )
 
-            connection_close
+            close_connection
         end
     end
 
