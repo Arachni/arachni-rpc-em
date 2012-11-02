@@ -2,7 +2,7 @@
 <table>
     <tr>
         <th>Version</th>
-        <td>0.1.2</td>
+        <td>0.1.3dev</td>
     </tr>
     <tr>
         <th>Github page</th>
