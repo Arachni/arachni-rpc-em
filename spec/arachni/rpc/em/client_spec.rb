@@ -8,6 +8,35 @@ describe Arachni::RPC::EM::Client do
         ]
     end
 
+    it "should be able to retain stability and consistency under heavy load" do
+        client = start_client( rpc_opts )
+
+        n    = 400
+        cnt  = 0
+
+        mismatches = []
+
+        n.times do |i|
+            client.call( 'test.foo', i ) do |res|
+                cnt += 1
+                mismatches << [i, res] if i != res
+                ::EM.stop if cnt == n || !mismatches.empty?
+            end
+        end
+
+        Arachni::RPC::EM.block
+        cnt.should > 0
+        mismatches.should be_empty
+    end
+
+    it "should throw error when connecting to inexistent server" do
+        start_client( rpc_opts.merge( :port => 9999 ) ).call( 'test.foo', @arg ) do |res|
+            res.rpc_connection_error?.should be_true
+            ::EM.stop
+        end
+        Arachni::RPC::EM.block
+    end
+
     describe "#initialize" do
         it "should be able to properly assign class options (including :role)" do
             opts = rpc_opts.merge( :role => :client )
@@ -142,35 +171,6 @@ describe Arachni::RPC::EM::Client do
             end
 
         end
-    end
-
-    it "should be able to retain stability and consistency under heavy load" do
-        client = start_client( rpc_opts )
-
-        n    = 400
-        cnt  = 0
-
-        mismatches = []
-
-        n.times do |i|
-            client.call( 'test.foo', i ) do |res|
-                cnt += 1
-                mismatches << [i, res] if i != res
-                ::EM.stop if cnt == n || !mismatches.empty?
-            end
-        end
-
-        Arachni::RPC::EM.block
-        cnt.should > 0
-        mismatches.should be_empty
-    end
-
-    it "should throw error when connecting to inexistent server" do
-        start_client( rpc_opts.merge( :port => 9999 ) ).call( 'test.foo', @arg ) do |res|
-            res.rpc_connection_error?.should be_true
-            ::EM.stop
-        end
-        Arachni::RPC::EM.block
     end
 
     context "when using valid SSL primitives" do
