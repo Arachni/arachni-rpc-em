@@ -88,7 +88,7 @@ module Protocol
         # cut them out as soon as possible
         #
         # don't buffer any data from unverified peers if SSL peer
-        # veification has been enabled
+        # verification has been enabled
         #
         if ssl_opts? && !verified_peer? && @role == :server
             e = Arachni::RPC::Exceptions::SSLPeerVerificationFailed.new( 'Could not verify peer.' )
@@ -143,7 +143,7 @@ module Protocol
     # @see http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #
     def serializer
-        return @opts[:client_serializer] if @opts[:client_serializer]
+        return @client_serializer if @client_serializer
 
         @opts[:serializer] ? @opts[:serializer] : YAML
     end
@@ -162,14 +162,14 @@ module Protocol
 
             if !r.is_a?( Hash ) && @opts[:fallback_serializer]
                 r = @opts[:fallback_serializer].load( obj )
-                @opts[:client_serializer] = @opts[:fallback_serializer]
+                @client_serializer = @opts[:fallback_serializer]
             end
 
             r
         rescue Exception => e
             raise if !@opts[:fallback_serializer]
 
-            @opts[:client_serializer] = @opts[:fallback_serializer]
+            @client_serializer = @opts[:fallback_serializer]
 
             @opts[:fallback_serializer].load obj
         end
