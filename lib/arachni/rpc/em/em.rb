@@ -49,7 +49,7 @@ module EM
         if !::EM::reactor_running?
 
             Thread.new do
-                ::EM::run do
+                ::EM.run do
                     ::EM.error_handler do |e|
                         $stderr.puts "Exception raised during event loop: " +
                         "#{e.message} (#{e.class})\n#{(e.backtrace ||
