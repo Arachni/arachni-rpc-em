@@ -103,10 +103,13 @@ class Client
         def retry_request
             opts = @opts.dup
             opts[:tries] += 1
-            EventMachine::Timer.new( 0.1 ){
-                sleep( 0.1 )
-                close_connection
-                ::EM.connect( opts[:host], opts[:port], self.class, opts ).send_request( @request )
+            close_connection
+
+            ::EM.next_tick {
+                ::EM::Timer.new( 0.2 ) {
+                    ::EM.connect( opts[:host], opts[:port], self.class, opts ).
+                        send_request( @request )
+                }
             }
         end
 
@@ -230,7 +233,7 @@ class Client
     end
 
     def call_async( req, &block )
-        ::EM.schedule {
+        ::EM.next_tick {
             req.callback = block if block_given?
             connect.send_request( req )
         }
