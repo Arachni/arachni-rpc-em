@@ -14,7 +14,8 @@ module EM
 # Simple EventMachine-based RPC client.
 #
 # It's capable of:
-# - performing and handling a few thousands requests per second (depending on call size, network conditions and the like)
+# - performing and handling a few thousands requests per second (depending on
+#   call size, network conditions and the like)
 # - TLS encryption
 # - asynchronous and synchronous requests
 # - handling remote asynchronous calls that require a block
@@ -39,10 +40,12 @@ class Client
         DEFAULT_TRIES = 9
 
         def initialize( opts )
-            @opts = opts
+            @opts = opts.dup
+
             @max_retries = @opts[:max_retries] || DEFAULT_TRIES
+
             @opts[:tries] ||= 0
-            @tries = @opts[:tries]
+            @tries ||= @opts[:tries]
 
             @status = :idle
 
@@ -58,7 +61,7 @@ class Client
         def unbind( reason )
             end_ssl
 
-            if @request && @request.callback && status != :done
+            if @request && @request.callback && !done?
                 if retry? #&& reason == Errno::ECONNREFUSED
                     retry_request
                 else
@@ -66,6 +69,7 @@ class Client
                     @request.callback.call( e )
                 end
             end
+
             @status = :closed
         end
 
@@ -77,38 +81,37 @@ class Client
             @status
         end
 
+        def done?
+            !!@done
+        end
+
         #
         # Used to handle responses.
         #
         # @param    [Arachni::RPC::EM::Response]    res
         #
         def receive_response( res )
-            @status = :done
-
             if exception?( res )
                 res.obj = Arachni::RPC::Exceptions.from_response( res )
             end
 
-            if cb = @request.callback
+            @request.callback.call( res.obj ) if @request.callback
 
-                callback = Proc.new do |obj|
-                    cb.call( obj )
-                    close_connection
-                end
-
-                callback.call( res.obj )
-            end
+            @done = true
+            @status = :done
+            close_connection
         end
 
         def retry_request
             opts = @opts.dup
             opts[:tries] += 1
-            close_connection
 
+            @tries += 1
             ::EM.next_tick {
                 ::EM::Timer.new( 0.2 ) {
                     ::EM.connect( opts[:host], opts[:port], self.class, opts ).
                         send_request( @request )
+                    #reconnect( @opts[:host], @opts[:port].to_i ).send_request( @request )
                 }
             }
         end
@@ -128,9 +131,9 @@ class Client
         # @param    [Arachni::RPC::EM::Request]      req
         #
         def send_request( req )
-            @status = :pending
             @request = req
             super( req )
+            @status = :pending
         end
     end
 
@@ -179,18 +182,12 @@ class Client
     # @param    [Hash]  opts
     #
     def initialize( opts )
-        begin
-            @opts  = opts.merge( role: :client )
-            @token = @opts[:token]
+        @opts  = opts.merge( role: :client )
+        @token = @opts[:token]
 
-            @host, @port = @opts[:host], @opts[:port]
+        @host, @port = @opts[:host], @opts[:port].to_i
 
-            Arachni::RPC::EM.ensure_em_running
-        rescue EventMachine::ConnectionError => e
-            exc = ConnectionError.new( "#{e} for '#{@k}'." )
-            exc.set_backtrace( e.backtrace )
-            raise exc
-        end
+        Arachni::RPC::EM.ensure_em_running
     end
 
     #
