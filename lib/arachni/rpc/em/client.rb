@@ -96,7 +96,7 @@ class Client
             end
 
             @request.callback.call( res.obj ) if @request.callback
-
+        ensure
             @done = true
             @status = :done
             close_connection
@@ -111,7 +111,6 @@ class Client
                 ::EM::Timer.new( 0.2 ) {
                     ::EM.connect( opts[:host], opts[:port], self.class, opts ).
                         send_request( @request )
-                    #reconnect( @opts[:host], @opts[:port].to_i ).send_request( @request )
                 }
             }
         end
