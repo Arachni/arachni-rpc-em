@@ -101,7 +101,6 @@ class Server
                 # if it's an RPC exception pass the type along as is
                 if e.rpc_exception?
                     type = e.class.name.split( ':' )[-1]
-
                 # otherwise set it to a RemoteExeption
                 else
                     type = 'RemoteException'
@@ -303,13 +302,13 @@ class Server
         if !object_exist?( obj_name )
             msg = "Trying to access non-existent object '#{obj_name}'."
             @logger.error( 'Call' ){ msg + " [on behalf of #{peer_ip_addr}]" }
-            raise( InvalidObject.new( msg ) )
+            raise InvalidObject.new( msg )
         end
 
         if !public_method?( obj_name, meth_name )
             msg = "Trying to access non-public method '#{meth_name}'."
             @logger.error( 'Call' ){ msg + " [on behalf of #{peer_ip_addr}]" }
-            raise( InvalidMethod.new( msg ) )
+            raise InvalidMethod.new( msg )
         end
 
         # the proxy needs to know whether this is an async call because if it
@@ -345,7 +344,7 @@ class Server
         @logger.info( 'System' ){ "Shutting down in #{wait_for} seconds..." }
 
         # don't die before returning
-        EventMachine::add_timer( wait_for ) { ::EM.stop }
+        ::EM.add_timer( wait_for ) { ::EM.stop }
         true
     end
 
