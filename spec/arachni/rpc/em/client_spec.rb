@@ -30,7 +30,13 @@ describe Arachni::RPC::EM::Client do
     end
 
     it "should throw error when connecting to inexistent server" do
-        start_client( rpc_opts.merge( :port => 9999 ) ).call( 'test.foo', @arg ) do |res|
+        start_client( rpc_opts.merge( :host => 'dddd', :port => 999339 ) ).call( 'test.foo', @arg ) do |res|
+            res.rpc_connection_error?.should be_true
+            ::EM.stop
+        end
+        Arachni::RPC::EM.block
+
+        start_client( rpc_opts.merge( :port => 999339 ) ).call( 'test.foo', @arg ) do |res|
             res.rpc_connection_error?.should be_true
             ::EM.stop
         end

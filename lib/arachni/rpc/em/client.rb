@@ -231,7 +231,14 @@ class Client
     def call_async( req, &block )
         ::EM.next_tick {
             req.callback = block if block_given?
-            connect.send_request( req )
+
+            begin
+                connect.send_request( req )
+            rescue ::EM::ConnectionError => e
+                exc = ConnectionError.new( e.to_s + " for '#{@host}:#{@port}'." )
+                exc.set_backtrace( e.backtrace )
+                req.callback.call exc
+            end
         }
     end
 
