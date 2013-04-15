@@ -57,7 +57,7 @@ The tests under <i>spec/arachni/rpc/</i> cover everything too so they can probab
 
 ### Gem
 
-The Gem hasn't been pushed yet, the system is still under development.
+    gem install arachni-rpc-em
 
 ### Source
 
