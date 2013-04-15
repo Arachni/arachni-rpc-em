@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
       s.version           = Arachni::RPC::EM::VERSION
       s.date              = Time.now.strftime('%Y-%m-%d')
       s.summary           = "The RPC client/server implementation of the Arachni web application security scanner framework."
-      s.homepage          = "https://github.com/Arachni/arachni-rpc"
+      s.homepage          = "https://github.com/Arachni/arachni-rpc-em"
       s.email             = "tasos.laskos@gmail.com"
       s.authors           = [ "Tasos Laskos" ]
 
