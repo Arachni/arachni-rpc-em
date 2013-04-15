@@ -1,6 +1,6 @@
 # ChangeLog
 
-## Version 0.1.3 (_Under development_)
+## Version 0.1.3 _(April 15, 2013)_
 
 - Stopped client callbacks from being deferred.
 - Server now supports a fallback serializer to allow clients to use a secondary serializer if they so choose.

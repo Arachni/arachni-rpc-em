@@ -1,8 +1,9 @@
 # Arachni-RPC EM
+
 <table>
     <tr>
         <th>Version</th>
-        <td>0.1.3dev</td>
+        <td>0.1.3</td>
     </tr>
     <tr>
         <th>Github page</th>
@@ -14,15 +15,15 @@
     </tr>
     <tr>
        <th>Author</th>
-       <td><a href="mailto:tasos.laskos@gmail.com">Tasos "Zapotek" Laskos</a></td>
+       <td><a href="mailto:tasos.laskos@gmail.com">Tasos "Zapotek" Laskos</a> (<a href="http://twitter.com/Zap0tek">@Zap0tek</a>)</td>
     </tr>
     <tr>
         <th>Twitter</th>
-        <td><a href="http://twitter.com/Zap0tek">@Zap0tek</a></td>
+        <td><a href="http://twitter.com/ArachniScanner">@ArachniScanner</a></td>
     </tr>
     <tr>
         <th>Copyright</th>
-        <td>2011-2012</td>
+        <td>2011-2013</td>
     </tr>
     <tr>
         <th>License</th>
@@ -71,11 +72,12 @@ If you want to clone the repository and work with the source code:
     rake spec
 
 ## Bug reports/Feature requests
+
 Please send your feedback using Github's issue system at
 [http://github.com/arachni/arachni-rpc-em/issues](http://github.com/arachni/arachni-rpc-em/issues).
 
 
 ## License
+
 Arachni-RPC EM is provided under the 3-clause BSD license.<br/>
 See the [LICENSE](file.LICENSE.html) file for more information.
-
