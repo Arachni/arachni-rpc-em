@@ -1,6 +1,6 @@
 # ChangeLog
 
-## Version 0.1.4dev _(Under development)_
+## Version 0.2dev _(Under development)_
 
 - YAML engine no longer forced to _Syck_.
 - Moved connection handlers to their own class files.
