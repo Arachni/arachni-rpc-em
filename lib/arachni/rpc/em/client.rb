@@ -10,6 +10,8 @@ module Arachni
 module RPC
 module EM
 
+require_relative 'client/handler'
+
 #
 # Simple EventMachine-based RPC client.
 #
@@ -24,117 +26,6 @@ module EM
 #
 class Client
     include ::Arachni::RPC::Exceptions
-
-    #
-    # Handles EventMachine's connection and RPC related stuff.
-    #
-    # It's responsible for TLS, storing and calling callbacks as well as
-    # serializing, transmitting and receiving objects.
-    #
-    # @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
-    #
-    class Handler < EventMachine::Connection
-        include ::Arachni::RPC::EM::Protocol
-        include ::Arachni::RPC::EM::ConnectionUtilities
-
-        DEFAULT_TRIES = 9
-
-        def initialize( opts )
-            @opts = opts.dup
-
-            @max_retries = @opts[:max_retries] || DEFAULT_TRIES
-
-            @opts[:tries] ||= 0
-            @tries ||= @opts[:tries]
-
-            @status = :idle
-
-            @request = nil
-            assume_client_role!
-        end
-
-        def post_init
-            @status = :active
-            start_ssl
-        end
-
-        def unbind( reason )
-            end_ssl
-
-            if @request && @request.callback && !done?
-                if retry? #&& reason == Errno::ECONNREFUSED
-                    retry_request
-                else
-                    e = Arachni::RPC::Exceptions::ConnectionError.new( "Connection closed [#{reason}]" )
-                    @request.callback.call( e )
-                end
-            end
-
-            @status = :closed
-        end
-
-        def connection_completed
-            @status = :established
-        end
-
-        def status
-            @status
-        end
-
-        def done?
-            !!@done
-        end
-
-        #
-        # Used to handle responses.
-        #
-        # @param    [Arachni::RPC::EM::Response]    res
-        #
-        def receive_response( res )
-            if exception?( res )
-                res.obj = Arachni::RPC::Exceptions.from_response( res )
-            end
-
-            @request.callback.call( res.obj ) if @request.callback
-        ensure
-            @done = true
-            @status = :done
-            close_connection
-        end
-
-        def retry_request
-            opts = @opts.dup
-            opts[:tries] += 1
-
-            @tries += 1
-            ::EM.next_tick {
-                ::EM::Timer.new( 0.2 ) {
-                    ::EM.connect( opts[:host], opts[:port], self.class, opts ).
-                        send_request( @request )
-                }
-            }
-        end
-
-        def retry?
-            @tries < @max_retries
-        end
-
-        # @param    [Arachni::RPC::EM::Response]    res
-        def exception?( res )
-            res.obj.is_a?( Hash ) && res.obj['exception'] ? true : false
-        end
-
-        #
-        # Sends the request.
-        #
-        # @param    [Arachni::RPC::EM::Request]      req
-        #
-        def send_request( req )
-            @request = req
-            super( req )
-            @status = :pending
-        end
-    end
 
     #
     # Options hash

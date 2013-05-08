@@ -1,12 +1,8 @@
 require 'rspec'
 require 'timeout'
 
-def cwd
-    File.expand_path( File.dirname( __FILE__ ) )
-end
-
-require File.join( cwd, '../lib/arachni/rpc/', 'em' )
-require File.join( cwd, 'servers', 'server' )
+require_relative '../lib/arachni/rpc/em'
+require_relative 'servers/server'
 
 def start_client( opts )
     Arachni::RPC::EM::Client.new( opts )
@@ -14,8 +10,8 @@ end
 
 def quiet_fork( &block )
     fork {
-        $stdout.reopen( '/dev/null', 'w' )
-        $stderr.reopen( '/dev/null', 'w' )
+        #$stdout.reopen( '/dev/null', 'w' )
+        #$stderr.reopen( '/dev/null', 'w' )
         block.call
     }
 end
@@ -30,6 +26,7 @@ RSpec.configure do |config|
     config.add_formatter :documentation
 
     config.before( :suite ) do
+        cwd = File.expand_path( File.dirname( __FILE__ ) )
         server_pids << quiet_spawn( File.join( cwd, 'servers', 'basic.rb' ) )
         server_pids << quiet_spawn( File.join( cwd, 'servers', 'with_ssl_primitives.rb' ) )
         server_pids << quiet_spawn( File.join( cwd, 'servers', 'with_fallback.rb' ) )

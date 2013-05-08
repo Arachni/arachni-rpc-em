@@ -14,7 +14,6 @@ require 'fiber'
 require 'arachni/rpc'
 
 require 'yaml'
-YAML::ENGINE.yamler = 'syck'
 
 dir = File.expand_path( File.dirname( __FILE__ ) )
 require File.join( dir, 'em', 'connection_utilities' )

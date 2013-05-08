@@ -9,7 +9,7 @@
 module Arachni
 module RPC
 module EM
-    VERSION = '0.1.3'
+    VERSION = '0.1.4dev'
 end
 end
 end

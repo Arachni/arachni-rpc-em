@@ -8,8 +8,11 @@
 
 =end
 
-$cwd = cwd = File.expand_path( File.dirname( __FILE__ ) )
-require File.join( cwd, '../../lib/arachni/rpc/', 'em' )
+require_relative '../../lib/arachni/rpc/em'
+
+def pems_path
+    File.expand_path( File.dirname( __FILE__ ) + '/../' )
+end
 
 def rpc_opts
     {
@@ -23,23 +26,23 @@ end
 def rpc_opts_with_ssl_primitives
     rpc_opts.merge(
         port:     7332,
-        ssl_ca:   cwd + '/pems/cacert.pem',
-        ssl_pkey: cwd + '/pems/client/key.pem',
-        ssl_cert: cwd + '/pems/client/cert.pem'
+        ssl_ca:   pems_path + '/pems/cacert.pem',
+        ssl_pkey: pems_path + '/pems/client/key.pem',
+        ssl_cert: pems_path + '/pems/client/cert.pem'
     )
 end
 
 def rpc_opts_with_invalid_ssl_primitives
     rpc_opts_with_ssl_primitives.merge(
-        ssl_pkey: cwd + '/pems/client/foo-key.pem',
-        ssl_cert: cwd + '/pems/client/foo-cert.pem'
+        ssl_pkey: pems_path + '/pems/client/foo-key.pem',
+        ssl_cert: pems_path + '/pems/client/foo-cert.pem'
     )
 end
 
 def rpc_opts_with_mixed_ssl_primitives
     rpc_opts_with_ssl_primitives.merge(
-        ssl_pkey: cwd + '/pems/client/key.pem',
-        ssl_cert: cwd + '/pems/client/foo-cert.pem'
+        ssl_pkey: pems_path + '/pems/client/key.pem',
+        ssl_cert: pems_path + '/pems/client/foo-cert.pem'
     )
 end
 
