@@ -36,7 +36,7 @@ class Handler < EventMachine::Connection
 
         # Do not tolerate long periods of inactivity in order to avoid zombie
         # connections.
-        set_comm_inactivity_timeout( INACTIVITY_TIMEOUT )
+        #set_comm_inactivity_timeout( INACTIVITY_TIMEOUT )
     end
 
     # starts TLS
@@ -47,6 +47,7 @@ class Handler < EventMachine::Connection
     def unbind
         end_ssl
         @server = nil
+        close_connection
     end
 
     def log( severity, progname, msg )

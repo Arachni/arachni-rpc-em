@@ -50,9 +50,12 @@ class Handler < EventMachine::Connection
                 e = RPC::Exceptions::ConnectionError.new( "Connection closed [#{reason}]" )
                 @request.callback.call( e )
             end
+            return
         end
 
+        @request = nil
         @status = :closed
+        close_connection
     end
 
     def connection_completed
