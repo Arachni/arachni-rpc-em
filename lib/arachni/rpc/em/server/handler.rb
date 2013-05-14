@@ -34,8 +34,8 @@ class Handler < EventMachine::Connection
         @id = nil
         @request = nil
 
-        # do not tolerate long periods of
-        # inactivity in order to avoid zombie connections
+        # Do not tolerate long periods of inactivity in order to avoid zombie
+        # connections.
         set_comm_inactivity_timeout( INACTIVITY_TIMEOUT )
     end
 
@@ -46,6 +46,7 @@ class Handler < EventMachine::Connection
 
     def unbind
         end_ssl
+        @server = nil
     end
 
     def log( severity, progname, msg )

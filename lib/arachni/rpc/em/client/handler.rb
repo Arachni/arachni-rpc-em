@@ -92,13 +92,16 @@ class Handler < EventMachine::Connection
         ::EM.next_tick {
             ::EM::Timer.new( 0.2 ) {
                 ::EM.connect( opts[:host], opts[:port], self.class, opts ).
-                    send_request( @request )
+                    send_request( @request.dup )
+                @request = nil
+                @retrying = true
+                close_connection
             }
         }
     end
 
     def retry?
-        @tries < @max_retries
+        !@retrying && @tries < @max_retries
     end
 
     # @param    [Arachni::RPC::EM::Response]    res
