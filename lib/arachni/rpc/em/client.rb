@@ -16,30 +16,28 @@ require_relative 'client/handler'
 # Simple EventMachine-based RPC client.
 #
 # It's capable of:
-# - performing and handling a few thousands requests per second (depending on
-#   call size, network conditions and the like)
-# - TLS encryption
-# - asynchronous and synchronous requests
-# - handling remote asynchronous calls that require a block
 #
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# * Performing and handling a few thousands requests per second (depending on
+#       call size, network conditions and the like)
+# * TLS encryption
+# * Asynchronous and synchronous requests
+# * Handling remote asynchronous calls that require a block
+#
+# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 class Client
     include ::Arachni::RPC::Exceptions
 
+    # Default amount of connections to maintain in the re-use pool.
     DEFAULT_CONNECTION_POOL_SIZE = 50
 
-    #
-    # Options hash
-    #
-    # @return   [Hash]
-    #
+    # @return   [Hash]  Options hash.
     attr_reader :opts
 
     #
     # Starts EventMachine and connects to the remote server.
     #
-    # opts example:
+    # @example Example options:
     #
     #    {
     #        :host  => 'localhost',
@@ -72,6 +70,18 @@ class Client
     #    }
     #
     # @param    [Hash]  opts
+    # @option   opts    [String]    :host   Hostname/IP address.
+    # @option   opts    [Integer]   :port   Port number.
+    # @option   opts    [String]    :token  Optional authentication token.
+    # @option   opts    [#dump, #load]      :serializer (YAML)
+    #   Serializer to use for message transmission.
+    # @option   opts    [#dump, #load]      :fallback_serializer
+    #   Optional fallback serializer to be used when the primary one fails.
+    # @option   opts    [Integer]   :max_retries
+    #   How many times to retry failed requests.
+    # @option   opts    [String]    :ssl_ca  SSL CA certificate.
+    # @option   opts    [String]    :ssl_pkey  SSL private key.
+    # @option   opts    [String]    :ssl_cert  SSL certificate.
     #
     def initialize( opts )
         @opts  = opts.merge( role: :client )
@@ -90,21 +100,21 @@ class Client
     #
     # There are 2 ways to perform a call, async (non-blocking) and sync (blocking).
     #
-    # To perform an async call you need to provide a block which will be passed
-    # the return value once the method has finished executing.
+    # @example  To perform an async call you need to provide a block to handle the result.
     #
     #    server.call( 'handler.method', arg1, arg2 ) do |res|
     #        do_stuff( res )
     #    end
     #
     #
-    # To perform a sync (blocking) call do not pass a block, the value will be
-    # returned as usual.
+    # @example  To perform a sync (blocking), call without a block.
     #
     #    res = server.call( 'handler.method', arg1, arg2 )
     #
-    # @param    [String]    msg     in the form of <i>handler.method</i>
-    # @param    [Array]     args    collection of arguments to be passed to the method
+    # @param    [String]    msg
+    #   RPC message in the form of `handler.method`.
+    # @param    [Array]     args
+    #   Collection of arguments to be passed to the method.
     # @param    [Proc]      &block
     #
     def call( msg, *args, &block )
@@ -118,7 +128,9 @@ class Client
         block_given? ? call_async( req ) : call_sync( req )
     end
 
-    # Finished {Handler}s push themselves here to be re-used.
+    # {Handler#done? Finished} {Handler}s push themselves here to be re-used.
+    #
+    # @param    [Handler]   connection
     def push_connection( connection )
         return if @pool_size <= 0 || @connections.size > @pool_size
         @connections << connection
