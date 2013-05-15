@@ -20,14 +20,14 @@ class Handler < EventMachine::Connection
     include ConnectionUtilities
     include ::Arachni::RPC::Exceptions
 
-    INACTIVITY_TIMEOUT = 10
+    #INACTIVITY_TIMEOUT = 10
 
     attr_reader :request
 
     def initialize( server )
         super
         @server = server
-        @opts   = server.opts
+        @opts   = server.opts.dup
 
         assume_server_role!
 
