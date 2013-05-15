@@ -11,16 +11,36 @@ module RPC::EM
 class Client
 
 #
-# Client connection handler.
+# Transmits `Arachni::RPC::Request` objects and calls callbacks once an
+# `Arachni::RPC::Response` is received.
 #
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 class Handler < EventMachine::Connection
     include Protocol
     include ConnectionUtilities
 
+    # Default amount of tries for failed requests.
     DEFAULT_TRIES = 9
 
+    # @return   [Symbol]    Status of the connection, can be:
+    #
+    # * `:idle` -- Just initialized.
+    # * `:ready` -- A connection has been established.
+    # * `:pending` -- Sending request and awaiting response.
+    # * `:done` -- Response received and callback invoked -- ready to be reused.
+    # * `:closed` -- Connection closed.
+    attr_reader :status
+
+    # Prepares an RPC connection and sets {#status} to `:idle`.
+    #
+    # @param    [Hash]  opts
+    # @option   opts    [Integer]   :max_retries    (9)
+    #   Default amount of tries for failed requests.
+    #
+    # @option   opts    [Client]   :base
+    #   Client instance (needed to {Client#push_connection push} ourselves
+    #   back to its connection pool once we're done and we're ready to be reused.)
     def initialize( opts )
         @opts = opts.dup
 
@@ -37,14 +57,53 @@ class Handler < EventMachine::Connection
         assume_client_role!
     end
 
+    # Sends an RPC request (i.e. performs an RPC call) and sets {#status}
+    # to `:pending`.
+    #
+    # @param    [Arachni::RPC::Request]      req
+    def send_request( req )
+        @request = req
+        @status  = :pending
+        super( req )
+    end
+
+    # @note Pushes itself to the client's connection pool to be re-used.
+    #
+    # Handles responses to RPC requests, calls its callback and sets {#status}
+    # to `:done`.
+    #
+    # @param    [Arachni::RPC::Response]    res
+    #
+    def receive_response( res )
+        if exception?( res )
+            res.obj = RPC::Exceptions.from_response( res )
+        end
+
+        @request.callback.call( res.obj ) if @request.callback
+    ensure
+        @request = nil # Help the GC out.
+        @status  = :done
+        @client.push_connection self
+    end
+
+    # Initializes an SSL session once the connection has been established and
+    # sets {#status} # to `:ready`.
+    #
+    # @private
     def post_init
-        @status = :active
+        @status = :ready
         start_ssl
     end
 
+    # Handles closed connections, cleans up the SSL session, retries (if
+    # necessary) and sets {#status} to `:closed`.
+    #
+    # @private
     def unbind( reason )
         end_ssl
 
+        # If there is a request and a callback and the callback hasn't yet be
+        # called (i.e. not done) then we got here by error so retry.
         if @request && @request.callback && !done?
             if retry? #&& reason == Errno::ECONNREFUSED
                 retry_request
@@ -58,43 +117,28 @@ class Handler < EventMachine::Connection
         close_without_retry
     end
 
-    def close_without_retry
-        @request = nil
-        @status  = :closed
-        close_connection
-    end
-
-    def connection_completed
-        @status = :established
-    end
-
-    def status
-        @status
-    end
-
+    # @return   [Boolean]
+    #   `true` when the connection has been closed, `false` otherwise.
     def closed?
         @status == :closed
     end
 
+    # @note If `true`, the connection can be re-used.
+    #
+    # @return   [Boolean]
+    #   `true` when the connection is done, `false` otherwise.
     def done?
         @status == :done
     end
 
-    #
-    # Used to handle responses.
-    #
-    # @param    [Arachni::RPC::EM::Response]    res
-    #
-    def receive_response( res )
-        if exception?( res )
-            res.obj = RPC::Exceptions.from_response( res )
-        end
+    private
 
-        @request.callback.call( res.obj ) if @request.callback
-    ensure
-        @request = nil # Help the GC out.
-        @status  = :done
-        @client.push_connection self
+    # Closes the connection without triggering a retry operation and sets
+    # {#status} to `:closed`.
+    def close_without_retry
+        @request = nil
+        @status  = :closed
+        close_connection
     end
 
     def retry_request
@@ -115,21 +159,11 @@ class Handler < EventMachine::Connection
         @tries < @max_retries
     end
 
-    # @param    [Arachni::RPC::EM::Response]    res
+    # @param    [Arachni::RPC::Response]    res
     def exception?( res )
         res.obj.is_a?( Hash ) && res.obj['exception'] ? true : false
     end
 
-    #
-    # Sends the request.
-    #
-    # @param    [Arachni::RPC::EM::Request]      req
-    #
-    def send_request( req )
-        @request = req
-        super( req )
-        @status = :pending
-    end
 end
 
 end
