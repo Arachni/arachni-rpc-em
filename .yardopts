@@ -1,0 +1,8 @@
+--no-private
+--markup=markdown
+--verbose
+--title "Arachni-RPC EM"
+lib/**/*.rb
+-
+CHANGELOG.md
+LICENSE.md

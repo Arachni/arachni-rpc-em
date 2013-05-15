@@ -29,8 +29,8 @@ task :docs do
     outdir = '../arachni-rpc-em-docs'
 
     sh "mkdir #{outdir}" if !File.directory?( outdir )
-    sh "yardoc --verbose --title 'Arachni-RPC' lib/* -o #{outdir} - CHANGELOG.md LICENSE.md"
-    sh 'rm -rf .yard*'
+    sh "yardoc -o #{outdir}"
+    sh 'rm -rf .yardoc'
 end
 
 desc 'Push a new version to RubyGems'
