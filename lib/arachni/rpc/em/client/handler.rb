@@ -26,8 +26,7 @@ class Handler < EventMachine::Connection
 
         @max_retries = @opts[:max_retries] || DEFAULT_TRIES
 
-        @client ||= @opts[:client]
-        @opts[:client] ||= @client
+        @client = @opts[:client]
 
         @opts[:tries] ||= 0
         @tries ||= @opts[:tries]
@@ -62,8 +61,6 @@ class Handler < EventMachine::Connection
     def close_without_retry
         @request = nil
         @status  = :closed
-        @client  = nil
-        @opts    = nil
         close_connection
     end
 

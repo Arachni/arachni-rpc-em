@@ -127,6 +127,10 @@ class Client
     private
 
     def connect
+        # Some connections may have died while they wait in the queue,
+        # get rid of them.
+        @connections.reject! { |c| !c.done? }
+
         return @connections.pop if @connections.any?
         ::EM.connect( @host, @port, Handler, @opts.merge( client: self ) )
     end
