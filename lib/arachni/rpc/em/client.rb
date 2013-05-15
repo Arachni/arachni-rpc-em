@@ -78,8 +78,9 @@ class Client
         @token = @opts[:token]
 
         @host, @port = @opts[:host], @opts[:port].to_i
+        @pool_size   = @opts[:connection_pool_size] || DEFAULT_CONNECTION_POOL_SIZE
 
-        @pool_size = @opts[:connection_pool_size] || DEFAULT_CONNECTION_POOL_SIZE
+        @connections ||= []
 
         Arachni::RPC::EM.ensure_em_running
     end
@@ -117,27 +118,17 @@ class Client
         block_given? ? call_async( req ) : call_sync( req )
     end
 
+    # Finished {Handler}s push themselves here to be re-used.
+    def push_connection( connection )
+        return if @pool_size <= 0 || @connections.size > @pool_size
+        @connections << connection
+    end
+
     private
 
     def connect
-        @connections ||= []
-
-        # Don't consider using previous connections which didn't finish cleanly
-        # and also let them go for the garbage collector.
-        @connections.reject! { |c| c.closed? }
-
-        # And don't let the pool grow too big nor leave connections open.
-        @connections.pop.close_without_retry while @connections.size >= @pool_size
-
-        # If possible, reuse a previously finished connection...
-        if c = @connections.find { |c| c.done? }
-            return c
-        end
-
-        # ...otherwise create a new one and add it to the pool.
-        c = ::EM.connect( @host, @port, Handler, @opts )
-        @connections << c
-        c
+        return @connections.pop if @connections.any?
+        ::EM.connect( @host, @port, Handler, @opts.merge( client: self ) )
     end
 
     def call_async( req, &block )
