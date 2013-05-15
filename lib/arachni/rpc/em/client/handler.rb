@@ -53,6 +53,10 @@ class Handler < EventMachine::Connection
             return
         end
 
+        close_without_retry
+    end
+
+    def close_without_retry
         @request = nil
         @status = :closed
         close_connection
@@ -87,7 +91,6 @@ class Handler < EventMachine::Connection
         @request.callback.call( res.obj ) if @request.callback
     ensure
         @status = :done
-        #close_connection
     end
 
     def retry_request
@@ -99,15 +102,13 @@ class Handler < EventMachine::Connection
             ::EM::Timer.new( 0.2 ) {
                 ::EM.connect( opts[:host], opts[:port], self.class, opts ).
                     send_request( @request.dup )
-                @request = nil
-                @retrying = true
-                close_connection
+                close_without_retry
             }
         }
     end
 
     def retry?
-        !@retrying && @tries < @max_retries
+        @tries < @max_retries
     end
 
     # @param    [Arachni::RPC::EM::Response]    res

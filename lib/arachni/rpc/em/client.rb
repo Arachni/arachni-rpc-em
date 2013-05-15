@@ -27,6 +27,8 @@ require_relative 'client/handler'
 class Client
     include ::Arachni::RPC::Exceptions
 
+    DEFAULT_CONNECTION_POOL_SIZE = 50
+
     #
     # Options hash
     #
@@ -77,6 +79,8 @@ class Client
 
         @host, @port = @opts[:host], @opts[:port].to_i
 
+        @pool_size = @opts[:connection_pool_size] || DEFAULT_CONNECTION_POOL_SIZE
+
         Arachni::RPC::EM.ensure_em_running
     end
 
@@ -122,10 +126,15 @@ class Client
         # and also let them go for the garbage collector.
         @connections.reject! { |c| c.closed? }
 
+        # And don't let the pool grow too big nor leave connections open.
+        @connections.pop.close_without_retry while @connections.size >= @pool_size
+
+        # If possible, reuse a previously finished connection...
         if c = @connections.find { |c| c.done? }
             return c
         end
 
+        # ...otherwise create a new one and add it to the pool.
         c = ::EM.connect( @host, @port, Handler, @opts )
         @connections << c
         c
