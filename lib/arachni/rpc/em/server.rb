@@ -12,28 +12,25 @@ module EM
 
 require_relative 'server/handler'
 
+# EventMachine-based RPC server.
 #
-# EventMachine-based RPC server class.
-#
-# It's capable of:
-# - performing and handling a few thousands requests per second (depending on call size, network conditions and the like)
-# - TLS encryption
-# - asynchronous and synchronous requests
-# - handling asynchronous methods that require a block
-#
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
-#
+# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 class Server
     include ::Arachni::RPC::Exceptions
 
+    # @return   [String]    Authentication token.
     attr_reader :token
+
+    # @return   [Hash]  Configuration options.
     attr_reader :opts
+
+    # @return   [Logger]
     attr_reader :logger
 
     #
     # Starts EventMachine and the RPC server.
     #
-    # opts example:
+    # @example  Example options:
     #
     #    {
     #        :host  => 'localhost',
@@ -44,8 +41,6 @@ class Server
     #        :token => 'superdupersecret',
     #
     #        # optional serializer (defaults to YAML)
-    #        # see the 'serializer' method at:
-    #        # http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
     #        :serializer => Marshal,
     #
     #        # serializer to use if the first choice fails
@@ -64,9 +59,21 @@ class Server
     #    }
     #
     # @param    [Hash]  opts
+    # @option   opts    [String]    :host   Hostname/IP address.
+    # @option   opts    [Integer]   :port   Port number.
+    # @option   opts    [String]    :token  Optional authentication token.
+    # @option   opts    [.dump, .load]      :serializer (YAML)
+    #   Serializer to use for message transmission.
+    # @option   opts    [.dump, .load]      :fallback_serializer
+    #   Optional fallback serializer to be used when the primary one fails.
+    # @option   opts    [Integer]   :max_retries
+    #   How many times to retry failed requests.
+    # @option   opts    [String]    :ssl_ca  SSL CA certificate.
+    # @option   opts    [String]    :ssl_pkey  SSL private key.
+    # @option   opts    [String]    :ssl_cert  SSL certificate.
     #
     def initialize( opts )
-        @opts  = opts
+        @opts = opts
 
         if @opts[:ssl_pkey] && @opts[:ssl_cert]
             if !File.exist?( @opts[:ssl_pkey] )
@@ -89,12 +96,7 @@ class Server
     end
 
     #
-    # This is a way to identify methods that pass their result to a block
-    # instead of simply returning them (which is the most usual operation of async methods.
-    #
-    # So no need to change your coding conventions to fit the RPC stuff,
-    # you can just decide dynamically based on the plethora of data which Ruby provides
-    # by its 'Method' class.
+    # @example
     #
     #    server.add_async_check do |method|
     #        #
@@ -105,19 +107,22 @@ class Server
     #        'async' ==  method.name.to_s.split( '_' )[0]
     #    end
     #
-    # @param    [Proc]  &block
+    # @param    [Block]  block
+    #   Block to identify methods that pass their result to a block instead of
+    #   simply returning them (which is the most usual operation of async methods).
     #
     def add_async_check( &block )
         @async_checks << block
     end
 
     #
-    # Adds a handler by name:
+    # @example
     #
     #    server.add_handler( 'myclass', MyClass.new )
     #
-    # @param    [String]    name    name via which to make the object available over RPC
-    # @param    [Object]    obj     object instance
+    # @param    [String]    name
+    #   Name by which to make the object available over RPC.
+    # @param    [Object]    obj     Instantiated server object to expose.
     #
     def add_handler( name, obj )
         @objects[name] = obj
@@ -130,10 +135,11 @@ class Server
         end
     end
 
+    # Clears all handlers and their associated information like methods and
+    # async check blocks.
     #
-    # Clears all handlers and their associated information like methods
-    # and async check blocks.
-    #
+    # @see #add_handler
+    # @see #add_async_check
     def clear_handlers
         @objects = {}
         @methods = {}
@@ -142,17 +148,13 @@ class Server
         @async_methods = {}
     end
 
-    #
-    # Runs the server and blocks.
-    #
+    # Runs the server and blocks while EM ir running.
     def run
         Arachni::RPC::EM.schedule { start }
         Arachni::RPC::EM.block
     end
 
-    #
     # Starts the server but does not block.
-    #
     def start
         @logger.info( 'System' ){ "RPC Server started." }
         @logger.info( 'System' ){ "Listening on #{@host}:#{@port}" }
@@ -160,9 +162,15 @@ class Server
         ::EM.start_server( @host, @port, Handler, self )
     end
 
+    # @note If the called method is asynchronous it will be sent by this method
+    #   directly, otherwise it will be handled by the {Handler}.
+    #
+    # @param    [Handler]   connection
+    #   Connection with request information.
+    #
+    # @return   [Arachni::RPC::Response]
     def call( connection )
-
-        req = connection.request
+        req          = connection.request
         peer_ip_addr = connection.peer_ip_addr
 
         expr, args = req.message, req.args
@@ -182,33 +190,30 @@ class Server
             raise InvalidMethod.new( msg )
         end
 
-        # the proxy needs to know whether this is an async call because if it
-        # is we'll have already send the response.
+        # The handler needs to know if this is an async call because if it is
+        # we'll have already send the response and it doesn't need to do
+        # transmit anything.
         res = Response.new
         res.async! if async?( obj_name, meth_name )
 
-        if !res.async?
-            res.obj = @objects[obj_name].send( meth_name.to_sym, *args )
-        else
+        if res.async?
             @objects[obj_name].send( meth_name.to_sym, *args ) do |obj|
                 res.obj = obj
                 connection.send_response( res )
             end
+        else
+            res.obj = @objects[obj_name].send( meth_name.to_sym, *args )
         end
 
         res
     end
 
-    #
     # @return   [TrueClass]
-    #
     def alive?
         true
     end
 
-    #
     # Shuts down the server after 2 seconds
-    #
     def shutdown
         wait_for = 2
 

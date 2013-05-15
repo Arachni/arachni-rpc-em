@@ -13,13 +13,11 @@ module EM
 #
 # Helper methods to be included in EventMachine::Connection classes
 #
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module ConnectionUtilities
 
-    #
     # @return   [String]    IP address of the client
-    #
     def peer_ip_addr
         begin
             if peername = get_peername

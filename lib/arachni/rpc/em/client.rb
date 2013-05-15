@@ -73,9 +73,9 @@ class Client
     # @option   opts    [String]    :host   Hostname/IP address.
     # @option   opts    [Integer]   :port   Port number.
     # @option   opts    [String]    :token  Optional authentication token.
-    # @option   opts    [#dump, #load]      :serializer (YAML)
+    # @option   opts    [.dump, .load]      :serializer (YAML)
     #   Serializer to use for message transmission.
-    # @option   opts    [#dump, #load]      :fallback_serializer
+    # @option   opts    [.dump, .load]      :fallback_serializer
     #   Optional fallback serializer to be used when the primary one fails.
     # @option   opts    [Integer]   :max_retries
     #   How many times to retry failed requests.
@@ -100,14 +100,14 @@ class Client
     #
     # There are 2 ways to perform a call, async (non-blocking) and sync (blocking).
     #
-    # @example  To perform an async call you need to provide a block to handle the result.
+    # @example To perform an async call you need to provide a block to handle the result.
     #
     #    server.call( 'handler.method', arg1, arg2 ) do |res|
     #        do_stuff( res )
     #    end
     #
     #
-    # @example  To perform a sync (blocking), call without a block.
+    # @example To perform a sync (blocking), call without a block.
     #
     #    res = server.call( 'handler.method', arg1, arg2 )
     #
@@ -115,7 +115,7 @@ class Client
     #   RPC message in the form of `handler.method`.
     # @param    [Array]     args
     #   Collection of arguments to be passed to the method.
-    # @param    [Proc]      &block
+    # @param    [Block]      block
     #
     def call( msg, *args, &block )
         req = Request.new(

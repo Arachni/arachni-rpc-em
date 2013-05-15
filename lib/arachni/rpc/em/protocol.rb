@@ -11,85 +11,27 @@ module RPC
 module EM
 
 #
-# Provides helper transport methods for {Message} transmission.
+# Provides helper transport methods for `Arachni::RPC::Message` transmission.
 #
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module Protocol
     include ::Arachni::RPC::EM::SSL
 
-    # send a maximum of 16kb of data per tick
+    # Send a maximum of 16kb of data per tick.
     MAX_CHUNK_SIZE = 1024 * 16
-
-    # become a server
-    def assume_server_role!
-        @role = :server
-    end
-
-    # become a client
-    def assume_client_role!
-        @role = :client
-    end
-
-    #
-    # Stub method, should be implemented by servers.
-    #
-    # @param    [Arachni::RPC::EM::Request]     request
-    #
-    def receive_request( request )
-        p request
-    end
-
-    #
-    # Stub method, should be implemented by clients.
-    #
-    # @param    [Arachni::RPC::EM::Response]    response
-    #
-    def receive_response( response )
-        p response
-    end
-
-    #
-    # Converts incoming hash objects to Requests or Response
-    # (depending on the assumed role) and calls receive_request() or receive_response()
-    # accordingly.
-    #
-    # @param    [Hash]      obj
-    #
-    def receive_object( obj )
-        if @role == :server
-            receive_request( Request.new( obj ) )
-        else
-            receive_response( Response.new( obj ) )
-        end
-    end
-
-    #
-    # Sends a message to the peer.
-    #
-    # @param    [Arachni::RPC::EM::Message]    msg
-    #
-    def send_message( msg )
-        ::EM.schedule { send_object( msg.prepare_for_tx ) }
-    end
-    alias :send_request  :send_message
-    alias :send_response :send_message
 
     #
     # Receives data from the network.
     #
-    # In this case the data will be chunks of a serialized object which
-    # will be buffered until the whole transmission has finished.
+    # Rhe data will be chunks of a serialized object which will be buffered
+    # until the whole transmission has finished.
     #
-    # It will then unresialize it and pass it to receive_object().
+    # It will then unserialize it and pass it to {#receive_object}.
     #
     def receive_data( data )
-        #
-        # cut them out as soon as possible
-        #
-        # don't buffer any data from unverified peers if SSL peer
-        # verification has been enabled
-        #
+        # Break out early if the request is sent by an unverified peer and SSL
+        # peer verification has been enabled.
         if ssl_opts? && !verified_peer? && @role == :server
             e = Arachni::RPC::Exceptions::SSLPeerVerificationFailed.new( 'Could not verify peer.' )
             send_response Response.new( :obj => {
@@ -114,11 +56,53 @@ module Protocol
         end
     end
 
+    private
+
+    # Stub method, should be implemented by servers.
     #
-    # Sends a ruby object over the network
+    # @param    [Arachni::RPC::Request]     request
+    # @abstract
+    def receive_request( request )
+        p request
+    end
+
     #
-    # Will split the object in chunks of MAX_CHUNK_SIZE and transmit one at a time.
+    # Stub method, should be implemented by clients.
     #
+    # @param    [Arachni::RPC::Response]    response
+    # @abstract
+    def receive_response( response )
+        p response
+    end
+
+    #
+    # Converts incoming hash objects to `Arachni::RPC::Request` and
+    # `Arachni::RPC::Response` objects (depending on the assumed role) and calls
+    # {#receive_request} or {#receive_response} accordingly.
+    #
+    # @param    [Hash]      obj
+    #
+    def receive_object( obj )
+        if @role == :server
+            receive_request( Request.new( obj ) )
+        else
+            receive_response( Response.new( obj ) )
+        end
+    end
+
+    # @param    [Arachni::RPC::Message]    msg
+    #   Message to send to the peer.
+    def send_message( msg )
+        ::EM.schedule { send_object( msg.prepare_for_tx ) }
+    end
+    alias :send_request  :send_message
+    alias :send_response :send_message
+
+    #
+    # @note Will split the object in chunks of MAX_CHUNK_SIZE and transmit one
+    #   at a time.
+    #
+    # @param    [Object]    obj  Object to send.
     def send_object( obj )
         data = serialize( obj )
         packed = [data.bytesize, data].pack( 'Na*' )
@@ -133,15 +117,20 @@ module Protocol
         end
     end
 
+    # Become a server.
+    def assume_server_role!
+        @role = :server
+    end
+
+    # Become a client.
+    def assume_client_role!
+        @role = :client
+    end
+
+    # Returns the preferred serializer based on the `serializer` option of the
+    # server.
     #
-    # Returns the preferred  based on the 'serializer' option of the server.
-    #
-    # Defaults to <i>YAML</i>.
-    #
-    # @return   [Class]     serializer to be used
-    #
-    # @see http://eventmachine.rubyforge.org/EventMachine/Protocols/ObjectProtocol.html#M000369
-    #
+    # @return   [.load, .dump]     Serializer to be used (Defaults to `YAML`).
     def serializer
         return @client_serializer if @client_serializer
 

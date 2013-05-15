@@ -12,7 +12,7 @@ module RPC
 #
 # Provides some convenient methods for EventMachine's Reactor.
 #
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
 #
 module EM
 
@@ -24,27 +24,21 @@ module EM
         extend self
     end
 
+    # @note Will make sure EM is running first.
     #
-    # Schedules a block to be run in the EM reactor.
-    #
-    # @param    [Proc]    &block
-    #
+    # @param    [Block]    block Block to be run in the EM reactor.
     def schedule( &block )
         ensure_em_running
         ::EM.schedule( &block )
     end
 
-    #
     # Blocks until the Reactor stops running
-    #
     def block
         # beware of deadlocks, we can't join our own thread
         ::EM.reactor_thread.join if ::EM.reactor_thread && !::EM::reactor_thread?
     end
 
-    #
     # Puts the Reactor in its own thread and runs it.
-    #
     def ensure_em_running
         if !::EM::reactor_running?
 
