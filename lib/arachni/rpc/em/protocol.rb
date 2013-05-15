@@ -21,6 +21,14 @@ module Protocol
     # Send a maximum of 16kb of data per tick.
     MAX_CHUNK_SIZE = 1024 * 16
 
+    # @param    [Arachni::RPC::Message]    msg
+    #   Message to send to the peer.
+    def send_message( msg )
+        ::EM.schedule { send_object( msg.prepare_for_tx ) }
+    end
+    alias :send_request  :send_message
+    alias :send_response :send_message
+
     #
     # Receives data from the network.
     #
@@ -89,14 +97,6 @@ module Protocol
             receive_response( Response.new( obj ) )
         end
     end
-
-    # @param    [Arachni::RPC::Message]    msg
-    #   Message to send to the peer.
-    def send_message( msg )
-        ::EM.schedule { send_object( msg.prepare_for_tx ) }
-    end
-    alias :send_request  :send_message
-    alias :send_response :send_message
 
     #
     # @note Will split the object in chunks of MAX_CHUNK_SIZE and transmit one
