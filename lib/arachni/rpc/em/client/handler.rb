@@ -95,7 +95,8 @@ class Handler < EventMachine::Connection
 
         @request.callback.call( res.obj ) if @request.callback
     ensure
-        @status = :done
+        @request = nil # Help the GC out.
+        @status  = :done
         @client.push_connection self
     end
 
