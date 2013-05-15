@@ -56,9 +56,9 @@ It's capable of:
 
 ## Usage
 
-Check out the files in the <i>examples/</i> directory, they go through everything
-in great detail. The tests under `spec/arachni/rpc/` cover everything too so they
-can probably help you out.
+The files in the `examples/` directory go through everything in great detail.
+Also, the tests under `spec/arachni/rpc/` cover everything too so they can
+provide you with hints.
 
 ## Installation
 
