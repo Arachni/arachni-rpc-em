@@ -54,7 +54,6 @@ class Handler < EventMachine::Connection
     def unbind
         end_ssl
         @server = nil
-        close_connection
     end
 
     #
