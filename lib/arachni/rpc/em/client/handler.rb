@@ -66,8 +66,12 @@ class Handler < EventMachine::Connection
         @status
     end
 
+    def closed?
+        @status == :closed
+    end
+
     def done?
-        !!@done
+        @status == :done
     end
 
     #
@@ -82,9 +86,8 @@ class Handler < EventMachine::Connection
 
         @request.callback.call( res.obj ) if @request.callback
     ensure
-        @done = true
         @status = :done
-        close_connection
+        #close_connection
     end
 
     def retry_request

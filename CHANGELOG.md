@@ -4,6 +4,8 @@
 
 - YAML engine no longer forced to _Syck_.
 - Moved connection handlers to their own class files.
+- `Client`
+    - Updated to reuse connections whenever possible.
 - Cleaned up RSpec tests.
 - Added Bundler files.
 

@@ -116,7 +116,19 @@ class Client
     private
 
     def connect
-        ::EM.connect( @host, @port, Handler, @opts )
+        @connections ||= []
+
+        # Don't consider using previous connections which didn't finish cleanly
+        # and also let them go for the garbage collector.
+        @connections.reject! { |c| c.closed? }
+
+        if c = @connections.find { |c| c.done? }
+            return c
+        end
+
+        c = ::EM.connect( @host, @port, Handler, @opts )
+        @connections << c
+        c
     end
 
     def call_async( req, &block )
