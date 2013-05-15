@@ -80,7 +80,7 @@ If you want to clone the repository and work with the source code:
 
 ## Bug reports/Feature requests
 
-Please send your feedback using Github's issue system at
+Please send your feedback using GitHub's issue system at
 [http://github.com/arachni/arachni-rpc-em/issues](http://github.com/arachni/arachni-rpc-em/issues).
 
 
