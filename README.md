@@ -33,25 +33,32 @@
 
 ## Synopsis
 
-Arachni-RPC EM is an implementation of the <a href="http://github.com/Arachni/arachni-rpc">Arachni-RPC</a> protocol using EventMachine and provides both a server and a client. <br/>
+Arachni-RPC EM is an implementation of the <a href="http://github.com/Arachni/arachni-rpc">Arachni-RPC</a>
+protocol using EventMachine and provides both a server and a client. <br/>
 
 ## Features
 
 It's capable of:
 
- - Performing and handling a few thousand requests per second (depending on call size, network conditions and the like).
- - Configurable retry-on-fail for requests.
- - TLS encryption (with peer verification).
- - Asynchronous and synchronous requests.
- - Handling server-side asynchronous calls that require a block (or any method that passes its result to a block instead of returning it).
- - Token-based authentication.
- - Primary and secondary (fallback) serializers -- Server will expect the Client to use the primary serializer,
-    if the Request cannot be parsed using the primary one, it will revert to using the fallback to parse the Request and serialize the Response.
+- Performing and handling a few thousand requests per second (depending on call
+    size, network conditions and the like).
+- Configurable retry-on-fail for requests.
+- Keep-alive and connection re-use.
+- TLS encryption (with peer verification).
+- Asynchronous and synchronous requests.
+- Handling server-side asynchronous calls that require a block (or any method
+    that passes its result to a block instead of returning it).
+- Token-based authentication.
+- Primary and secondary/fallback serializers
+    - Server will expect the Client to use the primary serializer, if the Request
+        cannot be parsed using the primary one, it will revert to using the
+        fallback to parse the Request and serialize the Response.
 
 ## Usage
 
-Check out the files in the <i>examples/</i> directory, they go through everything in great detail.<br/>
-The tests under <i>spec/arachni/rpc/</i> cover everything too so they can probably help you out.
+Check out the files in the <i>examples/</i> directory, they go through everything
+in great detail. The tests under `spec/arachni/rpc/` cover everything too so they
+can probably help you out.
 
 ## Installation
 
@@ -65,11 +72,11 @@ If you want to clone the repository and work with the source code:
 
     git co git://github.com/arachni/arachni-rpc-em.git
     cd arachni-rpc-em
-    rake install
+    bundle install
 
 ## Running the Specs
 
-    rake spec
+    bundle exec rake spec
 
 ## Bug reports/Feature requests
 
