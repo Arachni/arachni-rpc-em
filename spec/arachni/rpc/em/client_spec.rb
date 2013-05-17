@@ -8,7 +8,7 @@ describe Arachni::RPC::EM::Client do
         ]
     end
 
-    it "should be able to retain stability and consistency under heavy load" do
+    it 'retains stability and consistency under heavy load' do
         client = start_client( rpc_opts )
 
         n    = 100_000
@@ -17,10 +17,11 @@ describe Arachni::RPC::EM::Client do
         mismatches = []
 
         n.times do |i|
-            client.call( 'test.foo', i ) do |res|
+            arg = 'a' * i
+            client.call( 'test.foo', arg ) do |res|
                 cnt += 1
-                mismatches << [i, res] if i != res
-                ::EM.stop if cnt == n || !mismatches.empty?
+                mismatches << [i, arg, res] if arg != res
+                ::EM.stop if cnt == n || mismatches.any?
             end
         end
 
@@ -29,22 +30,8 @@ describe Arachni::RPC::EM::Client do
         mismatches.should be_empty
     end
 
-    it "should throw error when connecting to inexistent server" do
-        start_client( rpc_opts.merge( :host => 'dddd', :port => 999339 ) ).call( 'test.foo', @arg ) do |res|
-            res.rpc_connection_error?.should be_true
-            ::EM.stop
-        end
-        Arachni::RPC::EM.block
-
-        start_client( rpc_opts.merge( :port => 999339 ) ).call( 'test.foo', @arg ) do |res|
-            res.rpc_connection_error?.should be_true
-            ::EM.stop
-        end
-        Arachni::RPC::EM.block
-    end
-
-    describe "#initialize" do
-        it "should be able to properly assign class options (including :role)" do
+    describe '#initialize' do
+        it 'should be able to properly assign class options (including :role)' do
             opts = rpc_opts.merge( :role => :client )
             start_client( opts ).opts.should == opts
         end
@@ -60,18 +47,15 @@ describe Arachni::RPC::EM::Client do
                 start_client( opts ).call( 'test.foo', @arg ).should == @arg
             end
         end
-
     end
 
-    describe "raw interface" do
-
-        context "when using Threads" do
-
-            it "should be able to perform synchronous calls" do
+    describe 'raw interface' do
+        context 'when using Threads' do
+            it 'should be able to perform synchronous calls' do
                 @arg.should == start_client( rpc_opts ).call( 'test.foo', @arg )
             end
 
-            it "should be able to perform asynchronous calls" do
+            it 'should be able to perform asynchronous calls' do
                 start_client( rpc_opts ).call( 'test.foo', @arg ) do |res|
                     @arg.should == res
                     ::EM.stop
@@ -80,9 +64,8 @@ describe Arachni::RPC::EM::Client do
             end
         end
 
-        context "when run inside the Reactor loop" do
-
-            it "should be able to perform synchronous calls" do
+        context 'when run inside the Reactor loop' do
+            it 'should be able to perform synchronous calls' do
                 ::EM.run {
                     ::Arachni::RPC::EM::Synchrony.run do
                         @arg.should == start_client( rpc_opts ).call( 'test.foo', @arg )
@@ -91,7 +74,7 @@ describe Arachni::RPC::EM::Client do
                 }
             end
 
-            it "should be able to perform asynchronous calls" do
+            it 'should be able to perform asynchronous calls' do
                 ::EM.run {
                     start_client( rpc_opts ).call( 'test.foo', @arg ) do |res|
                         res.should == @arg
@@ -103,14 +86,13 @@ describe Arachni::RPC::EM::Client do
         end
     end
 
-    describe "Arachni::RPC::RemoteObjectMapper interface" do
-        it "should be able to properly forward synchronous calls" do
+    describe 'Arachni::RPC::RemoteObjectMapper interface' do
+        it 'should be able to properly forward synchronous calls' do
             test = Arachni::RPC::RemoteObjectMapper.new( start_client( rpc_opts ), 'test' )
             test.foo( @arg ).should == @arg
-            # ::EM.stop
         end
 
-        it "should be able to properly forward synchronous calls" do
+        it 'should be able to properly forward synchronous calls' do
             test = Arachni::RPC::RemoteObjectMapper.new( start_client( rpc_opts ), 'test' )
             test.foo( @arg ) do |res|
                 res.should == @arg
@@ -120,75 +102,110 @@ describe Arachni::RPC::EM::Client do
         end
     end
 
-    describe "exception" do
-        context 'when performing asynchronous calls' do
-
-            it "should be returned when requesting inexistent objects" do
-                start_client( rpc_opts ).call( 'bar.foo' ) do |res|
-                    res.rpc_invalid_object_error?.should be_true
+    context 'when performing an asynchronous call' do
+        context 'and connecting to a non-existent server' do
+            it 'returns Arachni::RPC::Exceptions::ConnectionError' do
+                options = rpc_opts.merge( host: 'dddd', port: 999339 )
+                start_client( options ).call( 'test.foo', @arg ) do |res|
+                    res.rpc_connection_error?.should be_true
+                    res.should be_kind_of Arachni::RPC::Exceptions::ConnectionError
                     ::EM.stop
                 end
                 Arachni::RPC::EM.block
             end
-
-            it "should be returned when requesting inexistent or non-public methods" do
-                start_client( rpc_opts ).call( 'test.bar' ) do |res|
-                    res.rpc_invalid_method_error?.should be_true
-                    ::EM.stop
-                end
-                Arachni::RPC::EM.block
-            end
-
-            it "should be returned when there's a remote exception" do
-                start_client( rpc_opts ).call( 'test.foo' ) do |res|
-                    res.rpc_remote_exception?.should be_true
-                    ::EM.stop
-                end
-                Arachni::RPC::EM.block
-            end
-
         end
 
-        context 'when performing synchronous calls' do
+        context 'and requesting a non-existent object' do
+            it 'returns Arachni::RPC::Exceptions::InvalidObject' do
+                start_client( rpc_opts ).call( 'bar.foo' ) do |res|
+                    res.rpc_invalid_object_error?.should be_true
+                    res.should be_kind_of Arachni::RPC::Exceptions::InvalidObject
+                    ::EM.stop
+                end
+                Arachni::RPC::EM.block
+            end
+        end
 
-            it "should be raised when requesting inexistent objects" do
+        context 'and requesting a non-public method' do
+            it 'returns Arachni::RPC::Exceptions::InvalidMethod' do
+                start_client( rpc_opts ).call( 'test.bar' ) do |res|
+                    res.rpc_invalid_method_error?.should be_true
+                    res.should be_kind_of Arachni::RPC::Exceptions::InvalidMethod
+                    ::EM.stop
+                end
+                Arachni::RPC::EM.block
+            end
+        end
+
+        context 'and there is a remote exception' do
+            it 'returns Arachni::RPC::Exceptions::RemoteException' do
+                start_client( rpc_opts ).call( 'test.foo' ) do |res|
+                    res.rpc_remote_exception?.should be_true
+                    res.should be_kind_of Arachni::RPC::Exceptions::RemoteException
+                    ::EM.stop
+                end
+                Arachni::RPC::EM.block
+            end
+        end
+    end
+
+    context 'when performing a synchronous call' do
+        #context 'and connecting to a non-existent server' do
+        #    it 'raises Arachni::RPC::Exceptions::ConnectionError' do
+        #        begin
+        #            options = rpc_opts.merge( host: 'dddd', port: 999339 )
+        #            start_client( options ).call( 'test.foo', @arg )
+        #        rescue => e
+        #            e.rpc_connection_error?.should be_true
+        #            e.should be_kind_of Arachni::RPC::Exceptions::ConnectionError
+        #        end
+        #    end
+        #end
+
+        context 'and requesting a non-existent object' do
+            it 'raises Arachni::RPC::Exceptions::InvalidObject' do
                 begin
                     start_client( rpc_opts ).call( 'bar2.foo' )
                 rescue Exception => e
                     e.rpc_invalid_object_error?.should be_true
+                    e.should be_kind_of Arachni::RPC::Exceptions::InvalidObject
                 end
             end
+        end
 
-            it "should be raised when requesting inexistent or non-public methods" do
+        context 'and requesting a non-public method' do
+            it 'raises Arachni::RPC::Exceptions::InvalidMethod' do
                 begin
                     start_client( rpc_opts ).call( 'test.bar2' )
                 rescue Exception => e
                     e.rpc_invalid_method_error?.should be_true
+                    e.should be_kind_of Arachni::RPC::Exceptions::InvalidMethod
                 end
-
             end
+        end
 
-            it "should be raised when there's a remote exception" do
+        context 'and there is a remote exception' do
+            it 'raises Arachni::RPC::Exceptions::RemoteException' do
                 begin
                     start_client( rpc_opts ).call( 'test.foo' )
                 rescue Exception => e
                     e.rpc_remote_exception?.should be_true
+                    e.should be_kind_of Arachni::RPC::Exceptions::RemoteException
                 end
             end
-
         end
     end
 
-    context "when using valid SSL primitives" do
-        it "should be able to establish a connection" do
+    context 'when using valid SSL primitives' do
+        it 'should be able to establish a connection' do
             res = start_client( rpc_opts_with_ssl_primitives ).call( 'test.foo', @arg )
             res.should == @arg
             ::EM.stop
         end
     end
 
-    context "when using invalid SSL primitives" do
-        it "should not be able to establish a connection" do
+    context 'when using invalid SSL primitives' do
+        it 'should not be able to establish a connection' do
             start_client( rpc_opts_with_invalid_ssl_primitives ).call( 'test.foo', @arg ) do |res|
                 res.rpc_connection_error?.should be_true
                 ::EM.stop
@@ -197,8 +214,8 @@ describe Arachni::RPC::EM::Client do
         end
     end
 
-    context "when using mixed SSL primitives" do
-        it "should not be able to establish a connection" do
+    context 'when using mixed SSL primitives' do
+        it 'should not be able to establish a connection' do
             start_client( rpc_opts_with_mixed_ssl_primitives ).call( 'test.foo', @arg ) do |res|
                 res.rpc_connection_error?.should be_true
                 res.rpc_ssl_error?.should be_true

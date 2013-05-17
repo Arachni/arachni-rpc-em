@@ -54,16 +54,14 @@ end
 
 class Test < Parent
 
-    # in order to make inherited methods accessible you've got to explicitly
-    # make them public
+    # In order to make inherited methods accessible you've got to explicitly
+    # make them public.
     private :foo
     public  :foo
 
-    #
     # Uses EventMachine to call the block asynchronously
-    #
     def async_foo( arg, &block )
-        ::EM.schedule { ::EM.defer { block.call( arg ) if block_given? } }
+        ::EM.schedule { block.call( arg ) if block_given? }
     end
 
 end

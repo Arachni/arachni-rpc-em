@@ -12,28 +12,27 @@ describe Arachni::RPC::EM::Server do
         @server = start_server( @opts, true )
     end
 
-    describe "#initialize" do
-        it "should be able to properly setup class options" do
+    describe '#initialize' do
+        it 'should be able to properly setup class options' do
             @server.opts.should == @opts
         end
     end
 
-    it "should retain the supplied token" do
+    it 'should retain the supplied token' do
         @server.token.should == @opts[:token]
     end
 
-    it "should have a Logger" do
+    it 'should have a Logger' do
         @server.logger.class.should == ::Logger
     end
 
-    describe "#alive?" do
+    describe '#alive?' do
         subject { @server.alive? }
         it { should == true }
     end
 
-    describe "#async?" do
-
-        it "should return true for async methods" do
+    describe '#async?' do
+        it 'should return true for async methods' do
             @server.async?( 'test', 'async_foo' ).should be_true
         end
 
