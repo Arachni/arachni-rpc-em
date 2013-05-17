@@ -6,6 +6,7 @@
 - Moved connection handlers to their own class files.
 - `Client`
     - Updated to reuse connections whenever possible.
+    - Maintains an adjustable-sized connection pool.
 - Cleaned up RSpec tests.
 - Added Bundler files.
 

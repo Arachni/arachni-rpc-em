@@ -11,7 +11,7 @@ describe Arachni::RPC::EM::Client do
     it "should be able to retain stability and consistency under heavy load" do
         client = start_client( rpc_opts )
 
-        n    = 400
+        n    = 100_000
         cnt  = 0
 
         mismatches = []

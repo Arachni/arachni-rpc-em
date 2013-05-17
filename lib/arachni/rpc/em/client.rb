@@ -29,7 +29,7 @@ class Client
     include ::Arachni::RPC::Exceptions
 
     # Default amount of connections to maintain in the re-use pool.
-    DEFAULT_CONNECTION_POOL_SIZE = 50
+    DEFAULT_CONNECTION_POOL_SIZE = 10
 
     # @return   [Hash]  Options hash.
     attr_reader :opts
@@ -72,6 +72,8 @@ class Client
     # @param    [Hash]  opts
     # @option   opts    [String]    :host   Hostname/IP address.
     # @option   opts    [Integer]   :port   Port number.
+    # @option   opts    [Integer]   :connection_pool_size (10)
+    #   Amount of connections to keep open.
     # @option   opts    [String]    :token  Optional authentication token.
     # @option   opts    [.dump, .load]      :serializer (YAML)
     #   Serializer to use for message transmission.
@@ -90,7 +92,8 @@ class Client
         @host, @port = @opts[:host], @opts[:port].to_i
         @pool_size   = @opts[:connection_pool_size] || DEFAULT_CONNECTION_POOL_SIZE
 
-        @connections ||= []
+        @connections         = ::EM::Queue.new
+        @pending_connections = 0
 
         Arachni::RPC::EM.ensure_em_running
     end
@@ -133,32 +136,56 @@ class Client
     # @param    [Handler]   connection
     def push_connection( connection )
         return if @pool_size <= 0 || @connections.size > @pool_size
+        @pending_connections -= 1
         @connections << connection
     end
 
     private
 
-    def connect
-        # Some connections may have died while they wait in the queue,
-        # get rid of them.
-        @connections.reject! { |c| !c.done? }
+    # Connection factory, will re-use of create new connections as needed to
+    # accommodate the workload.
+    #
+    # @param    [Block] block   Block to be passed a {Handler connection}.
+    #
+    # @return   [Boolean]
+    #   `true` if a new connection had to be established, `false` if an existing
+    #   one was re-used.
+    def connect( &block )
+        if @connections.empty? && @pending_connections < @pool_size
+            @pending_connections += 1
+            block.call ::EM.connect( @host, @port, Handler, @opts.merge( client: self ) )
+            return true
+        end
 
-        return @connections.pop if @connections.any?
-        ::EM.connect( @host, @port, Handler, @opts.merge( client: self ) )
+        pop_block = proc do |conn|
+            # Some connections may have died while they were waiting in the
+            # queue, get rid of them and start all over in case the queue has
+            # been emptied.
+            if !conn.done?
+                connect( &block )
+                next
+            end
+
+            block.call conn
+        end
+
+        @connections.pop( &pop_block )
+
+        false
     end
 
     def call_async( req, &block )
-        ::EM.next_tick {
-            req.callback = block if block_given?
+        req.callback = block if block_given?
 
-            begin
-                connect.send_request( req )
-            rescue ::EM::ConnectionError => e
-                exc = ConnectionError.new( e.to_s + " for '#{@host}:#{@port}'." )
-                exc.set_backtrace( e.backtrace )
-                req.callback.call exc
+        begin
+            connect do |conn|
+                conn.send_request( req )
             end
-        }
+        rescue ::EM::ConnectionError => e
+            exc = ConnectionError.new( e.to_s + " for '#{@host}:#{@port}'." )
+            exc.set_backtrace( e.backtrace )
+            req.callback.call exc
+        end
     end
 
     def call_sync( req )
