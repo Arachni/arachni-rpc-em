@@ -3,10 +3,14 @@
 ## Version 0.2dev _(Under development)_
 
 - YAML engine no longer forced to _Syck_.
-- Moved connection handlers to their own class files.
 - `Client`
+    - Moved connection handler to its own class file.
     - Updated to reuse connections whenever possible.
     - Maintains an adjustable-sized connection pool.
+        - Uses a single connection by default.
+- `Server`
+    - Moved connection handler to its own class file.
+    - Removed connection inactivity timeout.
 - Cleaned up RSpec tests.
 - Added Bundler files.
 
