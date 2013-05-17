@@ -83,6 +83,7 @@ class Handler < EventMachine::Connection
     ensure
         @request = nil # Help the GC out.
         @status  = :done
+        @opts[:tries] = @tries = 0
         @client.push_connection self
     end
 
@@ -106,10 +107,15 @@ class Handler < EventMachine::Connection
         # called (i.e. not done) then we got here by error so retry.
         if @request && @request.callback && !done?
             if retry? #&& reason == Errno::ECONNREFUSED
+                #p 'RETRY'
+                #p @client.connection_count
                 retry_request
             else
+                #p 'FAIL'
+                #p @client.connection_count
                 e = RPC::Exceptions::ConnectionError.new( "Connection closed [#{reason}]" )
                 @request.callback.call( e )
+                @client.connection_failed self
             end
             return
         end
@@ -131,8 +137,6 @@ class Handler < EventMachine::Connection
         @status == :done
     end
 
-    private
-
     # Closes the connection without triggering a retry operation and sets
     # {#status} to `:closed`.
     def close_without_retry
@@ -141,18 +145,23 @@ class Handler < EventMachine::Connection
         close_connection
     end
 
+    private
+
     def retry_request
         opts = @opts.dup
         opts[:tries] += 1
+
+        req = @request.dup
 
         @tries += 1
         ::EM.next_tick {
             ::EM::Timer.new( 0.2 ) {
                 ::EM.connect( opts[:host], opts[:port], self.class, opts ).
-                    send_request( @request.dup )
-                close_without_retry
+                    send_request( req )
             }
         }
+
+        close_without_retry
     end
 
     def retry?
