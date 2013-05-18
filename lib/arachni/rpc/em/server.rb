@@ -231,8 +231,11 @@ class Server
 
         @logger.info( 'System' ){ "Shutting down in #{wait_for} seconds..." }
 
-        # don't die before returning
-        ::EM.add_timer( wait_for ) { ::EM.stop }
+        # Don't die before returning...
+        ::EM.add_timer( wait_for ) do
+            File.unlink( @socket ) if @socket
+            ::EM.stop
+        end
         true
     end
 
