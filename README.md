@@ -42,7 +42,8 @@ It's capable of:
 
 - Performing and handling a few thousand requests per second (depending on call
     size, network conditions and the like).
-- Configurable retry-on-fail for requests.
+- Operating over TCP/IP and UNIX domain sockets.
+- Configurable retry-on-failure for requests.
 - Keep-alive and connection re-use.
 - TLS encryption (with peer verification).
 - Asynchronous and synchronous requests.
