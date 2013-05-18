@@ -156,8 +156,8 @@ class Handler < EventMachine::Connection
         @tries += 1
         ::EM.next_tick {
             ::EM::Timer.new( 0.2 ) {
-                ::EM.connect( opts[:host], opts[:port], self.class, opts ).
-                    send_request( req )
+                address = opts[:socket] ? opts[:socket] : [opts[:host], opts[:port]]
+                ::EM.connect( *[address, self.class, opts ].flatten ).send_request( req )
             }
         }
 
