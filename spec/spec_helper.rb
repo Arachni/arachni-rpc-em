@@ -30,6 +30,7 @@ RSpec.configure do |config|
         server_pids << quiet_spawn( File.join( cwd, 'servers', 'basic.rb' ) )
         server_pids << quiet_spawn( File.join( cwd, 'servers', 'with_ssl_primitives.rb' ) )
         server_pids << quiet_spawn( File.join( cwd, 'servers', 'with_fallback.rb' ) )
+        server_pids << quiet_spawn( File.join( cwd, 'servers', 'unix_socket.rb' ) )
         server_pids.each { |pid| Process.detach( pid ) }
         sleep 2
     end

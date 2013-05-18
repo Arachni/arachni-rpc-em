@@ -74,6 +74,7 @@ class Client
     # @param    [Hash]  opts
     # @option   opts    [String]    :host   Hostname/IP address.
     # @option   opts    [Integer]   :port   Port number.
+    # @option   opts    [String]   :socket   Path to UNIX domain socket.
     # @option   opts    [Integer]   :connection_pool_size (1)
     #   Amount of connections to keep open.
     # @option   opts    [String]    :token  Optional authentication token.
@@ -91,8 +92,24 @@ class Client
         @opts  = opts.merge( role: :client )
         @token = @opts[:token]
 
-        @host, @port = @opts[:host], @opts[:port].to_i
-        @pool_size   = @opts[:connection_pool_size] || DEFAULT_CONNECTION_POOL_SIZE
+        @host, @port = @opts[:host], @opts[:port]
+        @socket = @opts[:socket]
+
+        if !@socket && !(@host || @port)
+            fail ArgumentError, 'Needs either a :socket or :host and :port options.'
+        end
+
+        @port = @port.to_i
+
+        if @host && @port <= 0
+            fail ArgumentError, "Invalid port: #{@port}"
+        end
+
+        if @socket && !File.exist?( @socket )
+            fail ArgumentError, "Socket path not valid: #{@socket}"
+        end
+
+        @pool_size = @opts[:connection_pool_size] || DEFAULT_CONNECTION_POOL_SIZE
 
         @connections      = ::EM::Queue.new
         @connection_count = 0
@@ -113,7 +130,9 @@ class Client
             #p 'NEW'
             #p connection_count
             increment_connection_counter
-            block.call ::EM.connect( @host, @port, Handler, @opts.merge( client: self ) )
+
+            opts = @socket ? @socket : [@host, @port]
+            block.call ::EM.connect( *[opts, Handler, @opts.merge( client: self )].flatten )
             return true
         end
 
@@ -235,11 +254,11 @@ class Client
                 ret = Fiber.yield
             rescue FiberError => e
                 msg = e.to_s + "\n"
-                msg += '(Consider wrapping your sync code in a' +
-                    ' "::Arachni::RPC::EM::Synchrony.run" ' +
-                    'block when your app is running inside the Reactor\'s thread)'
+                msg += '(Consider wrapping your sync code in a' <<
+                    ' "::Arachni::RPC::EM::Synchrony.run" block when your app ' <<
+                    'is running inside the Reactor\'s thread)'
 
-                raise( msg )
+                raise msg
             end
         end
 

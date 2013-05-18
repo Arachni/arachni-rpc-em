@@ -3,6 +3,7 @@
 ## Version 0.2dev _(Under development)_
 
 - YAML engine no longer forced to _Syck_.
+- Added support for UNIX domain sockets.
 - `Client`
     - Moved connection handler to its own class file.
     - Updated to reuse connections whenever possible.

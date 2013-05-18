@@ -61,6 +61,7 @@ class Server
     # @param    [Hash]  opts
     # @option   opts    [String]    :host   Hostname/IP address.
     # @option   opts    [Integer]   :port   Port number.
+    # @option   opts    [String]   :socket   Path to UNIX domain socket.
     # @option   opts    [String]    :token  Optional authentication token.
     # @option   opts    [.dump, .load]      :serializer (YAML)
     #   Serializer to use for message transmission.
@@ -77,11 +78,11 @@ class Server
 
         if @opts[:ssl_pkey] && @opts[:ssl_cert]
             if !File.exist?( @opts[:ssl_pkey] )
-                raise 'Could not find private key at: ' + @opts[:ssl_pkey]
+                raise "Could not find private key at: #{@opts[:ssl_pkey]}"
             end
 
             if !File.exist?( @opts[:ssl_cert] )
-                raise 'Could not find certificate at: ' + @opts[:ssl_cert]
+                raise "Could not find certificate at: #{@opts[:ssl_cert]}"
             end
         end
 
@@ -91,6 +92,13 @@ class Server
         @logger.level = Logger::INFO
 
         @host, @port = @opts[:host], @opts[:port]
+        @socket = @opts[:socket]
+
+        if !@socket && !(@host || @port)
+            fail ArgumentError, 'Needs either a :socket or :host and :port options.'
+        end
+
+        @port = @port.to_i
 
         clear_handlers
     end
@@ -125,12 +133,12 @@ class Server
     # @param    [Object]    obj     Instantiated server object to expose.
     #
     def add_handler( name, obj )
-        @objects[name] = obj
-        @methods[name] = Set.new # no lookup overhead please :)
+        @objects[name]       = obj
+        @methods[name]       = Set.new
         @async_methods[name] = Set.new
 
         obj.class.public_instance_methods( false ).each do |method|
-            @methods[name] << method.to_s
+            @methods[name]       << method.to_s
             @async_methods[name] << method.to_s if async_check( obj.method( method ) )
         end
     end
@@ -156,10 +164,14 @@ class Server
 
     # Starts the server but does not block.
     def start
-        @logger.info( 'System' ){ "RPC Server started." }
-        @logger.info( 'System' ){ "Listening on #{@host}:#{@port}" }
+        @logger.info( 'System' ){ 'RPC Server started.' }
+        @logger.info( 'System' ) do
+            interface = @socket ? @socket : "#{@host}:#{@port}"
+            "Listening on #{interface}"
+        end
 
-        ::EM.start_server( @host, @port, Handler, self )
+        opts = @socket ? @socket : [@host, @port]
+        ::EM.start_server( *[opts, Handler, self].flatten )
     end
 
     # @note If the called method is asynchronous it will be sent by this method
@@ -234,7 +246,6 @@ class Server
         @async_checks.each { |check| return true if check.call( method ) }
         false
     end
-
 
     def log_call( peer_ip_addr, expr, *args )
         msg = "#{expr}"

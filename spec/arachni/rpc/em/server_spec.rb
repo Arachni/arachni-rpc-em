@@ -16,13 +16,53 @@ describe Arachni::RPC::EM::Server do
         it 'should be able to properly setup class options' do
             @server.opts.should == @opts
         end
+
+        context 'when passed no connection information' do
+            it 'raises ArgumentError' do
+                begin
+                    described_class.new({})
+                rescue => e
+                    e.should be_kind_of ArgumentError
+                end
+            end
+        end
+
+        context 'when passed a host but not a port' do
+            it 'raises ArgumentError' do
+                begin
+                    described_class.new( host: 'test' )
+                rescue => e
+                    e.should be_kind_of ArgumentError
+                end
+            end
+        end
+
+        context 'when passed a port but not a host' do
+            it 'raises ArgumentError' do
+                begin
+                    described_class.new( port: 9999 )
+                rescue => e
+                    e.should be_kind_of ArgumentError
+                end
+            end
+        end
+
+        context 'when passed an invalid port' do
+            it 'raises ArgumentError' do
+                begin
+                    described_class.new( host: 'tt', port: 'blah' )
+                rescue => e
+                    e.should be_kind_of ArgumentError
+                end
+            end
+        end
     end
 
-    it 'should retain the supplied token' do
+    it 'retains the supplied token' do
         @server.token.should == @opts[:token]
     end
 
-    it 'should have a Logger' do
+    it 'has a Logger' do
         @server.logger.class.should == ::Logger
     end
 
@@ -32,45 +72,58 @@ describe Arachni::RPC::EM::Server do
     end
 
     describe '#async?' do
-        it 'should return true for async methods' do
-            @server.async?( 'test', 'async_foo' ).should be_true
+        context 'when a method is async' do
+            it 'returns true' do
+                @server.async?( 'test', 'async_foo' ).should be_true
+            end
         end
 
-        it "should return false for sync methods" do
-            @server.async?( 'test', 'foo' ).should be_false
-        end
-    end
-
-    describe "#async_check" do
-
-        it "should return true for async methods" do
-            @server.async_check( Test.new.method( :async_foo ) ).should be_true
-        end
-
-        it "should return false for sync methods" do
-            @server.async_check( Test.new.method( :foo ) ).should be_false
+        context 'when a method is sync' do
+            it 'returns false' do
+                @server.async?( 'test', 'foo' ).should be_false
+            end
         end
     end
 
-    describe "#object_exist?" do
-
-        it "should return true for valid objects" do
-            @server.object_exist?( 'test' ).should be_true
+    describe '#async_check' do
+        context 'when a method is async' do
+            it 'returns true' do
+                @server.async_check( Test.new.method( :async_foo ) ).should be_true
+            end
         end
 
-        it "should return false for inexistent objects" do
-            @server.object_exist?( 'foo' ).should be_false
+        context 'when a method is sync' do
+            it 'returns false' do
+                @server.async_check( Test.new.method( :foo ) ).should be_false
+            end
         end
     end
 
-    describe "#public_method?" do
-
-        it "should return true for public methods" do
-            @server.public_method?( 'test', 'foo' ).should be_true
+    describe '#object_exist?' do
+        context 'when an object exists' do
+            it 'returns true' do
+                @server.object_exist?( 'test' ).should be_true
+            end
         end
 
-        it "should return false for inexistent or non-public methods" do
-            @server.public_method?( 'test', 'bar' ).should be_false
+        context 'when an object does not exist' do
+            it 'returns false' do
+                @server.object_exist?( 'foo' ).should be_false
+            end
+        end
+    end
+
+    describe '#public_method?' do
+        context 'when a method is public' do
+            it 'returns true' do
+                @server.public_method?( 'test', 'foo' ).should be_true
+            end
+        end
+
+        context 'when a method is non-existent or not public' do
+            it 'returns false' do
+                @server.public_method?( 'test', 'bar' ).should be_false
+            end
         end
     end
 

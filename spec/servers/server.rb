@@ -23,6 +23,14 @@ def rpc_opts
     }
 end
 
+def rpc_opts_with_socket
+    opts = rpc_opts
+    opts.delete( :host )
+    opts.delete( :port )
+
+    opts.merge( socket: '/tmp/arachni-rpc-em-test' )
+end
+
 def rpc_opts_with_ssl_primitives
     rpc_opts.merge(
         port:     7332,
