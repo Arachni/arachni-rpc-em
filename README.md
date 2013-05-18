@@ -79,6 +79,9 @@ If you want to clone the repository and work with the source code:
 
     bundle exec rake spec
 
+**Warning**: Some of the test cases include stress-testing, don't be alarmed
+when RAM usage hits 5GB and CPU utilization hits 100%.
+
 ## Bug reports/Feature requests
 
 Please send your feedback using GitHub's issue system at
