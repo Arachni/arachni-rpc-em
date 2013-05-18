@@ -256,6 +256,7 @@ class Client
                 t.wakeup
                 ret = obj
             end
+            raise ret if ret.is_a?( Exception )
             sleep
         else
             f = Fiber.current
