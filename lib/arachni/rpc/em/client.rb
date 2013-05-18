@@ -129,10 +129,13 @@ class Client
         if @connections.empty? && @connection_count < @pool_size
             #p 'NEW'
             #p connection_count
-            increment_connection_counter
-
-            opts = @socket ? @socket : [@host, @port]
-            block.call ::EM.connect( *[opts, Handler, @opts.merge( client: self )].flatten )
+            begin
+                opts = @socket ? @socket : [@host, @port]
+                block.call ::EM.connect( *[opts, Handler, @opts.merge( client: self )].flatten )
+                increment_connection_counter
+            rescue => e
+                block.call e
+            end
             return true
         end
 
@@ -220,17 +223,25 @@ class Client
 
     private
 
+    def set_exception( req, e )
+        exc = ConnectionError.new( e.to_s + " for '#{@host}:#{@port}'." )
+        exc.set_backtrace e.backtrace
+        req.callback.call exc
+    end
+
     def call_async( req, &block )
         req.callback = block if block_given?
 
         begin
             connect do |connection|
+                if connection.is_a? Exception
+                    set_exception( req, connection )
+                    next
+                end
                 connection.send_request( req )
             end
-        rescue ::EM::ConnectionError => e
-            exc = ConnectionError.new( e.to_s + " for '#{@host}:#{@port}'." )
-            exc.set_backtrace( e.backtrace )
-            req.callback.call exc
+        rescue => e
+            set_exception( req, e )
         end
     end
 

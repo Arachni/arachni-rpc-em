@@ -53,6 +53,18 @@ describe Arachni::RPC::EM::Client do
                     client.call( 'test.foo', 1 ).should == 1
                 end
 
+                context 'and connecting to a non-existent server' do
+                    it 'returns Arachni::RPC::Exceptions::ConnectionError' do
+                        options = rpc_opts_with_socket.merge( socket: '/' )
+                        start_client( options ).call( 'test.foo', @arg ) do |res|
+                            res.rpc_connection_error?.should be_true
+                            res.should be_kind_of Arachni::RPC::Exceptions::ConnectionError
+                            ::EM.stop
+                        end
+                        Arachni::RPC::EM.block
+                    end
+                end
+
                 it 'retains stability and consistency under heavy load' do
                     client = start_client( rpc_opts_with_socket )
 
