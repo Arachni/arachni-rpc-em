@@ -1,6 +1,6 @@
 # ChangeLog
 
-## Version 0.2dev _(Under development)_
+## Version 0.2 _(June 23, 2013)_
 
 - YAML engine no longer forced to _Syck_.
 - Added support for UNIX domain sockets.
