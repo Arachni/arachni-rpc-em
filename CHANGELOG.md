@@ -1,5 +1,9 @@
 # ChangeLog
 
+## Version 0.2.1 _(Under development)_
+
+- Added `Client#close` -- Empties the connection pool and closes all connections.
+
 ## Version 0.2 _(June 23, 2013)_
 
 - YAML engine no longer forced to _Syck_.

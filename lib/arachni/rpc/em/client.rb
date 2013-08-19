@@ -162,6 +162,14 @@ class Client
         false
     end
 
+    # Close all connections.
+    def close
+        timer = ::EM::PeriodicTimer.new( 0.1 ) do
+            @connections.pop { |c| c.close_without_retry }
+            timer.cancel if @connections.empty?
+        end
+    end
+
     def increment_connection_counter
         @connection_count += 1
     end
@@ -224,7 +232,13 @@ class Client
     private
 
     def set_exception( req, e )
-        exc = ConnectionError.new( e.to_s + " for '#{@host}:#{@port}'." )
+        msg = if @socket
+            " for '#{@socket}'."
+        else
+            " for '#{@host}:#{@port}'."
+        end
+
+        exc = ConnectionError.new( e.to_s + msg )
         exc.set_backtrace e.backtrace
         req.callback.call exc
     end
