@@ -1,3 +1,8 @@
+# Defunct
+
+This project is no longer maintained nor used by Arachni, it has been substituted by
+[Arachni-RPC](http://github.com/Arachni/arachni-rpc).
+
 # Arachni-RPC EM
 
 <table>
