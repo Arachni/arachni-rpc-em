@@ -14,7 +14,7 @@ class Client
 # Transmits `Arachni::RPC::Request` objects and calls callbacks once an
 # `Arachni::RPC::Response` is received.
 #
-# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@arachni-scanner.com>
 #
 class Handler < EventMachine::Connection
     include Protocol

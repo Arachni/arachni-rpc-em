@@ -13,7 +13,7 @@ module EM
 #
 # Provides helper transport methods for `Arachni::RPC::Message` transmission.
 #
-# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@arachni-scanner.com>
 #
 module Protocol
     include ::Arachni::RPC::EM::SSL

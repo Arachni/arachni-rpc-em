@@ -1,6 +1,6 @@
 # License
 
-    Copyright (C) 2011, Tasos Laskos <tasos.laskos@gmail.com>
+    Copyright (C) 2011, Tasos Laskos <tasos.laskos@arachni-scanner.com>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without modification,

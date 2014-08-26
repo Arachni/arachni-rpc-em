@@ -40,7 +40,7 @@ module EM
 #
 # @see https://gist.github.com/1151454
 #
-# @author: Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author: Tasos "Zapotek" Laskos <tasos.laskos@arachni-scanner.com>
 #
 module SSL
     include ::Arachni::RPC::EM::ConnectionUtilities

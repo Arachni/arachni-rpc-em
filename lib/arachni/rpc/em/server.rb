@@ -14,7 +14,7 @@ require_relative 'server/handler'
 
 # EventMachine-based RPC server.
 #
-# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@arachni-scanner.com>
 class Server
     include ::Arachni::RPC::Exceptions
 

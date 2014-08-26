@@ -12,7 +12,7 @@ module RPC
 #
 # Provides some convenient methods for EventMachine's Reactor.
 #
-# @author Tasos "Zapotek" Laskos <tasos.laskos@gmail.com>
+# @author Tasos "Zapotek" Laskos <tasos.laskos@arachni-scanner.com>
 #
 module EM
 
